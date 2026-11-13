@@ -2,13 +2,13 @@
   "use strict";
 
   const PHASES = [
-    { name: "Risorsa", desc: "Aggiungi 1 risorsa a ogni eroe; puoi giocare un attaccamento" },
-    { name: "Pianificazione", desc: "Gioca alleati e attaccamenti spendendo risorse" },
-    { name: "Impresa", desc: "Impegna personaggi, rivela la carta incontro, risolvi l'impresa" },
+    { name: "Risorsa", desc: "Riscuotere risorse e pescare una carta" },
+    { name: "Pianificazione", desc: "Gioca alleati e aggiunte spendendo risorse" },
+    { name: "Impresa", desc: "Destinare i personaggi, allestimento (rivela la carta incontro) e risoluzione dell'impresa" },
     { name: "Viaggio", desc: "Scegli un luogo e mettilo come luogo attivo" },
-    { name: "Incontro", desc: "Scegli un nemico o pesca una carta incontro" },
-    { name: "Combattimento", desc: "I nemici attaccano, poi attacchi tu; assegna i danni" },
-    { name: "Ristoro", desc: "Raddrizza le carte esaurite, passa il segnalino primo giocatore" },
+    { name: "Incontro", desc: "Impegno facoltativo e verifiche di impegno" },
+    { name: "Combattimento", desc: "Distribuire carte ombra, i nemici attaccano, poi attacchi tu; assegna i danni" },
+    { name: "Ristoro", desc: "Ripristinare le carte esaurite, aumentare la minaccia" },
   ];
 
   const STORAGE_KEY = "lotr-lcg-memo/v1";
