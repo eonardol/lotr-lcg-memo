@@ -9,7 +9,7 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pens
 - **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1`, di nuovo Risorsa).
 - **Minaccia in rosso da 50 in su**.
 - **Undo** a 30 passi: annulla tap sbagliati, cambi fase, avanzamenti e anche il reset.
-- **Ruota interfaccia** con il tasto `↻`: 0° → 90° → 180° → 270°, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
+- **Ruota interfaccia** con il tasto `↻`: passa tra verticale e orizzontale, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
 - **Schermo intero** con il tasto `⛶` accanto alla rotazione (dove il browser lo supporta).
 - **Blocco schermo on/off**: il badge in alto è un interruttore; la preferenza viene salvata.
 - **Suoni**: `tap.mp3` a ogni pulsante, `new-round.mp3` quando dal Ristoro parte il turno successivo.
@@ -62,8 +62,9 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 ## Note sulla rotazione
 
 - Ruota **solo l'interfaccia**, non lo schermo del sistema: status bar e tasti fisici restano dove sono. È l'unico modo possibile da una pagina web (la Screen Orientation API funziona solo in fullscreen su Android e non esiste su iOS).
-- Con rotazioni di 90°/270° larghezza e altezza logiche si scambiano: su un telefono in verticale l'app diventa larga e bassa, quindi potrebbe servire uno scroll per raggiungere AVANTI. La rotazione è pensata per quando il telefono è appoggiato o montato su un supporto.
-- In verticale l'interfaccia ha altezza fissa: stepper delle fasi e AVANTI non si spostano quando cambiano descrizione o note; se il contenuto della fase è troppo alto scorre solo quello. Solo con altezze molto ridotte (sotto 480px logici) l'intera pagina torna scorrevole.
+- Il tasto alterna soltanto **verticale (0°) e orizzontale (90°)**; non ci sono le rotazioni capovolte, che non servono con il telefono appoggiato o montato su un supporto.
+- In orizzontale larghezza e altezza logiche si scambiano: l'interfaccia si compatta per restare interamente visibile.
+- L'interfaccia ha altezza fissa in ogni orientamento: stepper delle fasi e AVANTI non si spostano quando cambiano descrizione o note; se il contenuto della fase è troppo alto scorre solo quello. In landscape (altezze sotto 480px logici) i comandi si compattano per restare tutti visibili, senza rendere scorrevole la pagina.
 - La rotazione scelta è persistita in `localStorage`.
 
 ## Note su audio e schermo intero

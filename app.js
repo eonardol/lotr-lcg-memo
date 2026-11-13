@@ -164,8 +164,10 @@
       }
       notes = sanitizeNotes(data.notes);
       if (typeof data.wake === "boolean") wakeWanted = data.wake;
-      if ([0, 90, 180, 270].includes(Number(data.rotation))) {
-        rotation = Number(data.rotation);
+      // Solo due stati: verticale (0) e orizzontale (90).
+      // I vecchi salvataggi a 270 vengono riportati a 90, 180 a 0.
+      if ([90, 270].includes(Number(data.rotation))) {
+        rotation = 90;
       }
     } catch (error) {
       /* storage non disponibile: si continua senza persistenza */
@@ -657,31 +659,36 @@
   /* ---------- rotation ---------- */
 
   function layoutClasses() {
-    const swapped = rotation === 90 || rotation === 270;
+    const swapped = rotation === 90;
     const width = swapped ? window.innerHeight : window.innerWidth;
     const height = swapped ? window.innerWidth : window.innerHeight;
     document.documentElement.classList.toggle("narrow", width <= 350);
     document.documentElement.classList.toggle("compact-height", height <= 600);
     document.documentElement.classList.toggle("very-short", height < 480);
+    updateRotateLabel();
+  }
+
+  function updateRotateLabel() {
+    // L'etichetta descrive l'orientamento che si ottiene col prossimo tocco,
+    // così resta corretta anche se il telefono è già in orizzontale.
+    const rotated = rotation === 90;
+    const targetLandscape = rotated
+      ? window.innerWidth > window.innerHeight
+      : window.innerHeight > window.innerWidth;
+    const target = targetLandscape ? "orizzontale" : "verticale";
+    const prefix = rotated ? "Riporta" : "Ruota";
+    el.rotateBtn.setAttribute("aria-label", `${prefix} l'interfaccia in ${target}`);
+    el.rotateBtn.title = `${prefix} in ${target}`;
   }
 
   function applyRotation(value, persist = true) {
-    const normalized = (((Math.round(value / 90) * 90) % 360) + 360) % 360;
-    rotation = normalized;
+    // Solo verticale (0) e orizzontale (90): niente 180°/270°.
+    // Gli eventuali valori vecchi vengono riportati ai due stati utili.
+    const quarterTurns = Math.round(value / 90);
+    rotation = ((quarterTurns % 2) + 2) % 2 === 1 ? 90 : 0;
     el.rotator.dataset.rotation = String(rotation);
     el.rotator.scrollTop = 0;
     layoutClasses();
-
-    if (rotation === 0) {
-      el.rotateBtn.setAttribute("aria-label", "Ruota l'interfaccia di 90 gradi");
-      el.rotateBtn.title = "Ruota l'interfaccia";
-    } else {
-      el.rotateBtn.setAttribute(
-        "aria-label",
-        `Interfaccia ruotata di ${rotation} gradi. Ruota di altri 90 gradi`
-      );
-      el.rotateBtn.title = `Interfaccia ruotata di ${rotation}°`;
-    }
 
     if (persist) {
       save();
@@ -856,7 +863,7 @@
   el.next.addEventListener("click", advance);
   el.minacciaValue.addEventListener("click", openThreatDialog);
 
-  el.rotateBtn.addEventListener("click", () => applyRotation(rotation + 90));
+  el.rotateBtn.addEventListener("click", () => applyRotation(rotation === 0 ? 90 : 0));
   el.fullscreenBtn.addEventListener("click", toggleFullscreen);
   el.wakeBadge.addEventListener("click", toggleWakeLock);
 

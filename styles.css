@@ -60,17 +60,6 @@ body {
   transform: translate(-50%, -50%) rotate(90deg);
 }
 
-#rotator[data-rotation="180"] {
-  transform: translate(-50%, -50%) rotate(180deg);
-}
-
-#rotator[data-rotation="270"] {
-  width: 100vh;
-  width: 100dvh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(270deg);
-}
-
 #rotator:not([data-rotation="0"]) .app {
   --rot-safe: max(
     env(safe-area-inset-top),
@@ -990,16 +979,6 @@ body.modal-open #rotator {
 
 /* ---------- small / short layouts (classi impostate da app.js) ---------- */
 
-.very-short .app {
-  height: auto;
-  min-height: 100%;
-  overflow: visible;
-}
-
-.very-short .phase-card {
-  overflow: visible;
-}
-
 .narrow .app {
   padding-left: 10px;
   padding-right: 10px;
@@ -1089,6 +1068,114 @@ body.modal-open #rotator {
 
 .compact-height .next {
   padding: 8px 16px;
+}
+
+/* Landscape e altezze ridotte: chrome compatto ma fermo (stepper e AVANTI
+   sempre visibili); scorre soltanto il contenuto della fase. */
+.very-short .app {
+  gap: 6px;
+  padding-top: calc(env(safe-area-inset-top) + 6px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 6px);
+}
+
+.very-short .top {
+  min-height: 28px;
+}
+
+.very-short .counters {
+  gap: 8px;
+}
+
+.very-short .counter {
+  padding: 4px 6px 5px;
+}
+
+.very-short .counter-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+}
+
+.very-short .counter-row {
+  margin-top: 2px;
+}
+
+.very-short .counter-value {
+  font-size: 1.6rem;
+}
+
+.very-short .counter-value.long {
+  font-size: 1.15rem;
+}
+
+.very-short .step {
+  flex-basis: 34px;
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.very-short .edit-hint {
+  display: none;
+}
+
+.very-short .stepper {
+  gap: 4px;
+}
+
+.very-short .step-pill {
+  height: 30px;
+  font-size: 0.82rem;
+}
+
+.very-short .phase {
+  gap: 6px;
+}
+
+.very-short .phase-card {
+  padding: 0 4px;
+}
+
+.very-short .phase-eyebrow {
+  display: none;
+}
+
+.very-short .phase-name {
+  margin: 0 0 3px;
+  font-size: 1.2rem;
+}
+
+.very-short .phase-desc {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.very-short .phase-notes {
+  margin-top: 5px;
+  max-height: 96px;
+  padding: 5px 9px;
+}
+
+.very-short .notes-btn {
+  margin-top: 5px;
+  font-size: 0.62rem;
+}
+
+.very-short .next {
+  padding: 6px 12px;
+  border-radius: 14px;
+}
+
+.very-short .next-main {
+  font-size: 1.25rem;
+}
+
+.very-short .next-hint {
+  font-size: 0.6rem;
+}
+
+.very-short .bottom button {
+  min-height: 36px;
+  padding: 5px 8px;
+  font-size: 0.72rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
