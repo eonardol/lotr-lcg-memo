@@ -63,6 +63,7 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 
 - Ruota **solo l'interfaccia**, non lo schermo del sistema: status bar e tasti fisici restano dove sono. È l'unico modo possibile da una pagina web (la Screen Orientation API funziona solo in fullscreen su Android e non esiste su iOS).
 - Con rotazioni di 90°/270° larghezza e altezza logiche si scambiano: su un telefono in verticale l'app diventa larga e bassa, quindi potrebbe servire uno scroll per raggiungere AVANTI. La rotazione è pensata per quando il telefono è appoggiato o montato su un supporto.
+- In verticale l'interfaccia ha altezza fissa: stepper delle fasi e AVANTI non si spostano quando cambiano descrizione o note; se il contenuto della fase è troppo alto scorre solo quello. Solo con altezze molto ridotte (sotto 480px logici) l'intera pagina torna scorrevole.
 - La rotazione scelta è persistita in `localStorage`.
 
 ## Note su audio e schermo intero

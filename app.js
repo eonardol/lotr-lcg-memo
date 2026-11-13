@@ -662,6 +662,7 @@
     const height = swapped ? window.innerWidth : window.innerHeight;
     document.documentElement.classList.toggle("narrow", width <= 350);
     document.documentElement.classList.toggle("compact-height", height <= 600);
+    document.documentElement.classList.toggle("very-short", height < 480);
   }
 
   function applyRotation(value, persist = true) {

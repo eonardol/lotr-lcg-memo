@@ -101,7 +101,9 @@ body.modal-open #rotator {
 }
 
 .app {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -111,6 +113,7 @@ body.modal-open #rotator {
 /* ---------- header ---------- */
 
 .top {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -246,6 +249,7 @@ body.modal-open #rotator {
 /* ---------- counters ---------- */
 
 .counters {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -386,7 +390,7 @@ body.modal-open #rotator {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   min-height: 0;
 }
@@ -450,8 +454,17 @@ body.modal-open #rotator {
 }
 
 .phase-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
   text-align: center;
   padding: 2px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #40361f transparent;
 }
 
 .phase-eyebrow {
@@ -536,6 +549,7 @@ body.modal-open #rotator {
 /* ---------- next ---------- */
 
 .next {
+  flex: 0 0 auto;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -584,6 +598,7 @@ body.modal-open #rotator {
 /* ---------- footer ---------- */
 
 .bottom {
+  flex: 0 0 auto;
   display: flex;
   gap: 8px;
 }
@@ -974,6 +989,16 @@ body.modal-open #rotator {
 }
 
 /* ---------- small / short layouts (classi impostate da app.js) ---------- */
+
+.very-short .app {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.very-short .phase-card {
+  overflow: visible;
+}
 
 .narrow .app {
   padding-left: 10px;
