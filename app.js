@@ -709,9 +709,13 @@
     '<path d="M16 21v-3a2 2 0 0 1 2-2h3"/>' +
     "</svg>";
 
+  // Lo schermo intero va sulla radice: i browser applicano
+  // "transform: none !important" all'elemento fullscreen non-root,
+  // quindi usare #rotator annullerebbe la rotazione.
+  const fullscreenTarget = document.documentElement;
   const fullscreenSupported =
-    typeof el.rotator.requestFullscreen === "function" ||
-    typeof el.rotator.webkitRequestFullscreen === "function";
+    typeof fullscreenTarget.requestFullscreen === "function" ||
+    typeof fullscreenTarget.webkitRequestFullscreen === "function";
 
   function fullscreenElement() {
     return document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -736,10 +740,10 @@
         } else if (typeof document.webkitExitFullscreen === "function") {
           document.webkitExitFullscreen();
         }
-      } else if (typeof el.rotator.requestFullscreen === "function") {
-        await el.rotator.requestFullscreen();
-      } else if (typeof el.rotator.webkitRequestFullscreen === "function") {
-        el.rotator.webkitRequestFullscreen();
+      } else if (typeof fullscreenTarget.requestFullscreen === "function") {
+        await fullscreenTarget.requestFullscreen();
+      } else if (typeof fullscreenTarget.webkitRequestFullscreen === "function") {
+        fullscreenTarget.webkitRequestFullscreen();
       }
     } catch (error) {
       /* fullscreen rifiutato o non disponibile: nessun cambio */

@@ -70,7 +70,7 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 
 - I browser permettono l'audio solo dopo un gesto dell'utente: sia il tap sia il suono di nuovo turno partono da un tocco, quindi vengono riprodotti correttamente. Se non senti nulla controlla il volume del telefono e l'interruttore del silenzioso.
 - Il volume dei due effetti è impostato in `app.js` (`sfx`); puoi sostituire i file `tap.mp3` e `new-round.mp3` mantenendo gli stessi nomi.
-- Il tasto `⛶` usa la Fullscreen API sul contenitore dell'interfaccia (quindi anche in rotazione) e diventa “esci” quando sei a schermo intero. Su iPhone Safari la Fullscreen API per gli elementi non è disponibile: in quel caso il tasto viene nascosto.
+- Il tasto `⛶` usa la Fullscreen API sulla radice della pagina (non sul contenitore ruotato: i browser annullano la trasformazione dell'elemento fullscreen) e diventa “esci” quando sei a schermo intero. La rotazione resta quindi attiva anche in fullscreen. Su iPhone Safari la Fullscreen API per gli elementi non è disponibile: in quel caso il tasto viene nascosto.
 
 ## Struttura
 
