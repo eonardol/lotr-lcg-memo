@@ -20,6 +20,9 @@
   const $ = (id) => document.getElementById(id);
 
   const el = {
+    rotator: $("rotator"),
+    rotateBtn: $("rotateBtn"),
+    fullscreenBtn: $("fullscreenBtn"),
     wakeBadge: $("wakeBadge"),
     wakeText: $("wakeText"),
     turnoValue: $("turnoValue"),
@@ -61,9 +64,43 @@
 
   const initialState = () => ({ turno: 1, minaccia: 30, fase: 0 });
 
+  /* ---------- audio ---------- */
+
+  function makeSound(src, volume) {
+    const audio = new Audio(src);
+    audio.preload = "auto";
+    audio.volume = volume;
+    return audio;
+  }
+
+  const sfx = {
+    tap: makeSound("./tap.mp3", 0.45),
+    round: makeSound("./new-round.mp3", 0.9),
+  };
+
+  function playSfx(name) {
+    const audio = sfx[name];
+    if (!audio) return;
+    try {
+      audio.currentTime = 0;
+    } catch (error) {
+      /* metadati non ancora caricati: play parte comunque dall'inizio */
+    }
+    try {
+      const playback = audio.play();
+      if (playback && typeof playback.catch === "function") {
+        playback.catch(() => {});
+      }
+    } catch (error) {
+      /* audio non disponibile: si continua senza suono */
+    }
+  }
+
   let state = initialState();
   let history = [];
   let notes = {};
+  let rotation = 0;
+  let wakeWanted = true;
   let editingNoteId = null;
   let deletingNoteId = null;
   let lastRendered = null;
@@ -126,6 +163,10 @@
           .map((entry) => ({ state: sanitize(entry.state), label: entry.label }));
       }
       notes = sanitizeNotes(data.notes);
+      if (typeof data.wake === "boolean") wakeWanted = data.wake;
+      if ([0, 90, 180, 270].includes(Number(data.rotation))) {
+        rotation = Number(data.rotation);
+      }
     } catch (error) {
       /* storage non disponibile: si continua senza persistenza */
     }
@@ -133,7 +174,10 @@
 
   function save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, history, notes }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ state, history, notes, wake: wakeWanted, rotation })
+      );
     } catch (error) {
       /* quota o modalità privata: ignorato */
     }
@@ -348,6 +392,7 @@
         state.minaccia = next.minaccia;
         state.fase = next.fase;
       });
+      playSfx("round");
     } else {
       const target = state.fase + 1;
       mutate(`Fase ${PHASES[target].name}`, () => {
@@ -609,6 +654,98 @@
     vibrate(10);
   }
 
+  /* ---------- rotation ---------- */
+
+  function layoutClasses() {
+    const swapped = rotation === 90 || rotation === 270;
+    const width = swapped ? window.innerHeight : window.innerWidth;
+    const height = swapped ? window.innerWidth : window.innerHeight;
+    document.documentElement.classList.toggle("narrow", width <= 350);
+    document.documentElement.classList.toggle("compact-height", height <= 600);
+  }
+
+  function applyRotation(value, persist = true) {
+    const normalized = (((Math.round(value / 90) * 90) % 360) + 360) % 360;
+    rotation = normalized;
+    el.rotator.dataset.rotation = String(rotation);
+    el.rotator.scrollTop = 0;
+    layoutClasses();
+
+    if (rotation === 0) {
+      el.rotateBtn.setAttribute("aria-label", "Ruota l'interfaccia di 90 gradi");
+      el.rotateBtn.title = "Ruota l'interfaccia";
+    } else {
+      el.rotateBtn.setAttribute(
+        "aria-label",
+        `Interfaccia ruotata di ${rotation} gradi. Ruota di altri 90 gradi`
+      );
+      el.rotateBtn.title = `Interfaccia ruotata di ${rotation}°`;
+    }
+
+    if (persist) {
+      save();
+      vibrate(6);
+    }
+  }
+
+  /* ---------- fullscreen ---------- */
+
+  const FS_ICON_ENTER =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M8 3H5a2 2 0 0 0-2 2v3"/>' +
+    '<path d="M21 8V5a2 2 0 0 0-2-2h-3"/>' +
+    '<path d="M3 16v3a2 2 0 0 0 2 2h3"/>' +
+    '<path d="M16 21h3a2 2 0 0 0 2-2v-3"/>' +
+    "</svg>";
+
+  const FS_ICON_EXIT =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M8 3v3a2 2 0 0 1-2 2H3"/>' +
+    '<path d="M21 8h-3a2 2 0 0 1-2-2V3"/>' +
+    '<path d="M3 16h3a2 2 0 0 1 2 2v3"/>' +
+    '<path d="M16 21v-3a2 2 0 0 1 2-2h3"/>' +
+    "</svg>";
+
+  const fullscreenSupported =
+    typeof el.rotator.requestFullscreen === "function" ||
+    typeof el.rotator.webkitRequestFullscreen === "function";
+
+  function fullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function updateFullscreenButton() {
+    if (!fullscreenSupported) return;
+    const active = !!fullscreenElement();
+    el.fullscreenBtn.innerHTML = active ? FS_ICON_EXIT : FS_ICON_ENTER;
+    const label = active ? "Esci da schermo intero" : "Schermo intero";
+    el.fullscreenBtn.setAttribute("aria-label", label);
+    el.fullscreenBtn.setAttribute("aria-pressed", String(active));
+    el.fullscreenBtn.title = label;
+  }
+
+  async function toggleFullscreen() {
+    if (!fullscreenSupported) return;
+    try {
+      if (fullscreenElement()) {
+        if (typeof document.exitFullscreen === "function") {
+          await document.exitFullscreen();
+        } else if (typeof document.webkitExitFullscreen === "function") {
+          document.webkitExitFullscreen();
+        }
+      } else if (typeof el.rotator.requestFullscreen === "function") {
+        await el.rotator.requestFullscreen();
+      } else if (typeof el.rotator.webkitRequestFullscreen === "function") {
+        el.rotator.webkitRequestFullscreen();
+      }
+    } catch (error) {
+      /* fullscreen rifiutato o non disponibile: nessun cambio */
+    }
+    updateFullscreenButton();
+  }
+
   /* ---------- wake lock ---------- */
 
   let wakeLock = null;
@@ -616,16 +753,38 @@
 
   function setWakeBadge(mode) {
     el.wakeBadge.dataset.state = mode;
-    if (mode === "on") {
-      el.wakeText.textContent = "Schermo attivo";
-      el.wakeBadge.title = "Blocco schermo disattivato";
-    } else if (mode === "unsupported") {
-      el.wakeText.textContent = "Schermo non bloccato";
+
+    if (mode === "unsupported") {
+      el.wakeText.textContent = "Non supportato";
       el.wakeBadge.title = "Questo browser non supporta il blocco dello schermo";
-    } else {
-      el.wakeText.textContent = "Tocca per attivare";
-      el.wakeBadge.title = "Tocca lo schermo per impedirne lo spegnimento";
+      el.wakeBadge.setAttribute("aria-label", "Blocco schermo non supportato da questo browser");
+      el.wakeBadge.setAttribute("aria-disabled", "true");
+      el.wakeBadge.removeAttribute("aria-pressed");
+      return;
     }
+
+    el.wakeBadge.removeAttribute("aria-disabled");
+    const active = mode === "on";
+    el.wakeText.textContent = active ? "Schermo attivo" : "Schermo spento";
+    el.wakeBadge.setAttribute("aria-pressed", String(active));
+    el.wakeBadge.setAttribute(
+      "aria-label",
+      active
+        ? "Schermo sempre attivo: attivo. Tocca per disattivare"
+        : "Schermo sempre attivo: spento. Tocca per attivare"
+    );
+    el.wakeBadge.title = active
+      ? "Tocca per spegnere il blocco schermo"
+      : "Tocca per tenere lo schermo acceso";
+  }
+
+  function releaseWakeLock() {
+    if (!wakeLock) return;
+    const lock = wakeLock;
+    wakeLock = null;
+    lock.release().catch(() => {
+      /* già rilasciato */
+    });
   }
 
   async function ensureWakeLock() {
@@ -633,15 +792,20 @@
       setWakeBadge("unsupported");
       return;
     }
+    if (!wakeWanted) return;
     if (wakeLock || wakeRequest || document.visibilityState !== "visible") return;
 
     wakeRequest = navigator.wakeLock
       .request("screen")
       .then((lock) => {
+        if (!wakeWanted) {
+          lock.release().catch(() => {});
+          return;
+        }
         wakeLock = lock;
         setWakeBadge("on");
         lock.addEventListener("release", () => {
-          wakeLock = null;
+          if (wakeLock === lock) wakeLock = null;
           if (document.visibilityState === "visible") setWakeBadge("off");
         });
       })
@@ -653,9 +817,29 @@
       });
   }
 
+  function toggleWakeLock() {
+    if (!("wakeLock" in navigator)) {
+      setWakeBadge("unsupported");
+      return;
+    }
+
+    if (wakeWanted) {
+      wakeWanted = false;
+      releaseWakeLock();
+      setWakeBadge("off");
+      save();
+    } else {
+      wakeWanted = true;
+      save();
+      ensureWakeLock();
+    }
+    vibrate(6);
+  }
+
   /* ---------- init ---------- */
 
   load();
+  applyRotation(rotation, false);
   buildStepper();
   render();
 
@@ -666,6 +850,36 @@
 
   el.next.addEventListener("click", advance);
   el.minacciaValue.addEventListener("click", openThreatDialog);
+
+  el.rotateBtn.addEventListener("click", () => applyRotation(rotation + 90));
+  el.fullscreenBtn.addEventListener("click", toggleFullscreen);
+  el.wakeBadge.addEventListener("click", toggleWakeLock);
+
+  if (!fullscreenSupported) {
+    el.fullscreenBtn.hidden = true;
+  } else {
+    updateFullscreenButton();
+  }
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      const button =
+        event.target instanceof Element ? event.target.closest("button") : null;
+      if (button && !button.disabled) playSfx("tap");
+    },
+    { capture: true, passive: true }
+  );
+
+  document.addEventListener("keydown", (event) => {
+    if (event.repeat) return;
+    if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
+    const button =
+      event.target instanceof Element ? event.target.closest("button") : null;
+    if (button && !button.disabled) playSfx("tap");
+  });
 
   el.notesBtn.addEventListener("click", openNotesSheet);
   el.notesClose.addEventListener("click", closeNotesSheet);
@@ -735,9 +949,16 @@
 
   window.addEventListener("pointerdown", ensureWakeLock, { passive: true });
   window.addEventListener("focus", ensureWakeLock);
+  window.addEventListener("resize", layoutClasses);
+  window.addEventListener("orientationchange", layoutClasses);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", layoutClasses);
+  }
 
   if (!("wakeLock" in navigator)) {
     setWakeBadge("unsupported");
+  } else if (!wakeWanted) {
+    setWakeBadge("off");
   } else if (document.visibilityState === "visible") {
     ensureWakeLock();
   }

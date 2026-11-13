@@ -9,8 +9,11 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pens
 - **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1`, di nuovo Risorsa).
 - **Minaccia in rosso da 50 in su**.
 - **Undo** a 30 passi: annulla tap sbagliati, cambi fase, avanzamenti e anche il reset.
+- **Ruota interfaccia** con il tasto `↻`: 0° → 90° → 180° → 270°, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
+- **Schermo intero** con il tasto `⛶` accanto alla rotazione (dove il browser lo supporta).
+- **Blocco schermo on/off**: il badge in alto è un interruttore; la preferenza viene salvata.
+- **Suoni**: `tap.mp3` a ogni pulsante, `new-round.mp3` quando dal Ristoro parte il turno successivo.
 - Stato, fase, note e cronologia salvati in `localStorage`: riaprendo ritrovi la partita dov'era. Le note sopravvivono a “Nuova partita”.
-- **Wake lock**: prova a tenere lo schermo acceso, con riattivazione automatica al ritorno sull'app.
 - PWA installabile (manifest + icone), nessuna dipendenza esterna, funziona sotto qualsiasi sottocartella.
 
 ## Prova in locale
@@ -40,6 +43,7 @@ Tutto sta in `app.js`:
 - `HISTORY_LIMIT`: quanti passaggi di undo conservare.
 - `THREAT_ALERT`: soglia (50) oltre la quale la Minaccia diventa rossa.
 - `NOTE_LIMIT`: lunghezza massima di una nota (240 caratteri).
+- `sfx`: file audio e volumi (`tap` 0.45, `round` 0.9). I file `tap.mp3` e `new-round.mp3` stanno nella radice del progetto.
 
 Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per numero di fase (`"0"` = Risorsa, `"2"` = Impresa, …). Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
 
@@ -47,11 +51,25 @@ Lo stile (tema scuro/oro) è in `styles.css`, variabili CSS in `:root`.
 
 ## Note sul blocco schermo
 
-Il wake lock è supportato da Chrome/Edge/Firefox recenti e Safari 16.4+. Su iOS conviene **aggiungere l'app alla schermata Home** e aprirla da lì: in molti casi è l'unico modo perché il blocco funzioni. Il badge in alto a destra mostra lo stato:
+Il badge in alto a destra è un **interruttore**:
 
-- **Schermo attivo** — blocco acquisito.
-- **Tocca per attivare** — supportato ma non ancora attivo: basta toccare lo schermo.
-- **Schermo non bloccato** — API non disponibile nel browser.
+- **● Schermo attivo** — blocco acquisito; un tocco lo spegne.
+- **○ Schermo spento** — nessun blocco; un tocco lo riattiva.
+- **⚠ Non supportato** — il browser non espone la Screen Wake Lock API.
+
+La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaricamento; se è attivo, viene riacquisito automaticamente quando torni sull'app. Il wake lock è supportato da Chrome/Edge/Firefox recenti e Safari 16.4+. Su iOS conviene **aggiungere l'app alla schermata Home** e aprirla da lì: in molti casi è l'unico modo perché il blocco funzioni.
+
+## Note sulla rotazione
+
+- Ruota **solo l'interfaccia**, non lo schermo del sistema: status bar e tasti fisici restano dove sono. È l'unico modo possibile da una pagina web (la Screen Orientation API funziona solo in fullscreen su Android e non esiste su iOS).
+- Con rotazioni di 90°/270° larghezza e altezza logiche si scambiano: su un telefono in verticale l'app diventa larga e bassa, quindi potrebbe servire uno scroll per raggiungere AVANTI. La rotazione è pensata per quando il telefono è appoggiato o montato su un supporto.
+- La rotazione scelta è persistita in `localStorage`.
+
+## Note su audio e schermo intero
+
+- I browser permettono l'audio solo dopo un gesto dell'utente: sia il tap sia il suono di nuovo turno partono da un tocco, quindi vengono riprodotti correttamente. Se non senti nulla controlla il volume del telefono e l'interruttore del silenzioso.
+- Il volume dei due effetti è impostato in `app.js` (`sfx`); puoi sostituire i file `tap.mp3` e `new-round.mp3` mantenendo gli stessi nomi.
+- Il tasto `⛶` usa la Fullscreen API sul contenitore dell'interfaccia (quindi anche in rotazione) e diventa “esci” quando sei a schermo intero. Su iPhone Safari la Fullscreen API per gli elementi non è disponibile: in quel caso il tasto viene nascosto.
 
 ## Struttura
 
@@ -61,5 +79,6 @@ styles.css
 app.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
+tap.mp3  new-round.mp3
 .nojekyll
 ```
