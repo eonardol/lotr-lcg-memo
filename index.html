@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Turno · LOTR LCG</title>
+  <meta name="description" content="Supporto tabellone per Il Signore degli Anelli LCG: turno, minaccia e fasi.">
+  <meta name="theme-color" content="#0d0b08">
+  <meta name="color-scheme" content="dark">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Turno LCG">
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> LOTR LCG</span>
+      <span class="wake" id="wakeBadge" data-state="off" role="status" aria-live="polite">
+        <span class="wake-dot" aria-hidden="true"></span>
+        <span id="wakeText">Schermo attivo</span>
+      </span>
+    </header>
+
+    <section class="counters" aria-label="Contatori">
+      <article class="counter">
+        <h2 class="counter-label" id="turnoLabel">Turno</h2>
+        <div class="counter-row">
+          <button class="step" id="turnoMinus" type="button" aria-label="Diminuisci turno">−</button>
+          <span class="counter-value" id="turnoValue" aria-labelledby="turnoLabel" aria-live="polite">1</span>
+          <button class="step" id="turnoPlus" type="button" aria-label="Aumenta turno">+</button>
+        </div>
+      </article>
+
+      <article class="counter">
+        <h2 class="counter-label" id="minacciaLabel">Minaccia</h2>
+        <div class="counter-row">
+          <button class="step" id="minacciaMinus" type="button" aria-label="Diminuisci minaccia">−</button>
+          <button class="counter-value value-btn" id="minacciaValue" type="button"
+                  aria-labelledby="minacciaLabel" aria-live="polite">30</button>
+          <button class="step" id="minacciaPlus" type="button" aria-label="Aumenta minaccia">+</button>
+        </div>
+        <span class="edit-hint">tocca il numero per impostarlo</span>
+      </article>
+    </section>
+
+    <section class="phase" aria-label="Fase corrente">
+      <div class="stepper" id="stepper" aria-label="Salta a una fase"></div>
+
+      <div class="phase-card">
+        <p class="phase-eyebrow">Fase <span id="phaseNum">1</span> di 7</p>
+        <h2 class="phase-name" id="phaseName" aria-live="polite">Risorsa</h2>
+        <p class="phase-desc" id="phaseDesc"></p>
+
+        <div class="phase-notes" id="phaseNotes" hidden>
+          <ul id="phaseNotesList"></ul>
+        </div>
+        <button class="notes-btn" id="notesBtn" type="button" aria-haspopup="dialog">
+          <span id="notesBtnLabel">Aggiungi nota</span>
+        </button>
+      </div>
+    </section>
+
+    <button class="next" id="next" type="button">
+      <span class="next-main">Avanti</span>
+      <span class="next-hint" id="nextHint"></span>
+    </button>
+
+    <footer class="bottom">
+      <button id="undo" type="button" disabled>
+        <span aria-hidden="true">↶</span>
+        <span id="undoLabel">Annulla</span>
+      </button>
+      <button id="reset" type="button">
+        <span aria-hidden="true">↺</span>
+        <span>Nuova partita</span>
+      </button>
+    </footer>
+  </main>
+
+  <div class="overlay" id="notesOverlay" hidden>
+    <div class="panel panel-notes" role="dialog" aria-modal="true" aria-labelledby="notesTitle">
+      <div class="panel-head">
+        <h2 id="notesTitle">Note</h2>
+        <button class="icon-btn" id="notesClose" type="button" aria-label="Chiudi le note">✕</button>
+      </div>
+      <p class="panel-sub">Promemoria della fase. Restano anche con “Nuova partita”.</p>
+
+      <div class="notes-list" id="notesList"></div>
+      <p class="notes-empty" id="notesEmpty" hidden>Nessuna nota per questa fase.</p>
+
+      <form class="notes-composer" id="notesForm">
+        <textarea class="notes-input" id="notesInput" rows="2" maxlength="240"
+                  placeholder="Scrivi una nota per questa fase…" aria-label="Nuova nota"></textarea>
+        <div class="composer-row">
+          <span class="char-count" id="notesCount">0/240</span>
+          <button class="primary" id="notesAdd" type="submit" disabled>Aggiungi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="overlay" id="threatOverlay" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="threatTitle">
+      <h2 id="threatTitle">Imposta Minaccia</h2>
+      <p class="panel-sub">Valore tra 0 e 999.</p>
+      <input class="num-input" id="threatInput" type="text" inputmode="numeric"
+             autocomplete="off" enterkeyhint="done" aria-label="Valore della minaccia" value="30">
+      <div class="panel-actions">
+        <button class="ghost" id="threatCancel" type="button">Annulla</button>
+        <button class="primary" id="threatConfirm" type="button">Imposta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="resetOverlay" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+      <h2 id="resetTitle">Nuova partita</h2>
+      <p class="panel-sub">Azzera Turno, Minaccia e fase. Potrai sempre recuperare con ↶.</p>
+      <div class="panel-actions">
+        <button class="ghost" id="resetCancel" type="button">Annulla</button>
+        <button class="primary danger" id="resetConfirm" type="button">Azzera</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
