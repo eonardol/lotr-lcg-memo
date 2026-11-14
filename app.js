@@ -173,13 +173,9 @@
     wakeText: $("wakeText"),
     appVersion: $("appVersion"),
     turnoValue: $("turnoValue"),
-    minacciaValue: $("minacciaValue"),
-    threatCounter: $("threatCounter"),
-    threatHint: $("threatHint"),
+    players: $("players"),
     turnoMinus: $("turnoMinus"),
     turnoPlus: $("turnoPlus"),
-    minacciaMinus: $("minacciaMinus"),
-    minacciaPlus: $("minacciaPlus"),
     stepper: $("stepper"),
     phaseNum: $("phaseNum"),
     phaseName: $("phaseName"),
@@ -206,18 +202,35 @@
     notesAdd: $("notesAdd"),
     threatOverlay: $("threatOverlay"),
     threatInput: $("threatInput"),
+    threatSub: $("threatSub"),
     threatConfirm: $("threatConfirm"),
     threatCancel: $("threatCancel"),
+    nameOverlay: $("nameOverlay"),
+    nameInput: $("nameInput"),
+    nameTitle: $("nameTitle"),
+    nameConfirm: $("nameConfirm"),
+    nameCancel: $("nameCancel"),
     resetOverlay: $("resetOverlay"),
     resetConfirm: $("resetConfirm"),
     resetCancel: $("resetCancel"),
   };
 
+  const PLAYER_LIMIT = 4;
+  const PLAYER_NAME_MAX = 18;
+  const THREAT_DEFAULT = 30;
+  const THREAT_MAX = 999;
+
+  const makePlayer = (name = "", setup = false) => ({
+    id: makeId(),
+    name,
+    threat: THREAT_DEFAULT,
+    setup,
+  });
+
   const initialState = () => ({
     turno: 1,
-    minaccia: 30,
     fase: 0,
-    threatSetup: false,
+    players: [makePlayer()],
   });
 
   /* ---------- audio ---------- */
@@ -270,20 +283,68 @@
 
   /* ---------- persistence ---------- */
 
+  function sanitizePlayer(raw) {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const name =
+      typeof source.name === "string" ? source.name.trim().slice(0, PLAYER_NAME_MAX) : "";
+    const threat = Math.floor(Number(source.threat));
+    return {
+      id: typeof source.id === "string" && source.id ? source.id : makeId(),
+      name,
+      threat: Number.isFinite(threat)
+        ? Math.min(THREAT_MAX, Math.max(0, threat))
+        : THREAT_DEFAULT,
+      // Senza flag esplicito il promemoria non va mostrato (salvataggi vecchi).
+      setup: typeof source.setup === "boolean" ? source.setup : true,
+    };
+  }
+
   function sanitize(raw) {
     const turno = Math.floor(Number(raw && raw.turno));
-    const minaccia = Math.floor(Number(raw && raw.minaccia));
     const fase = Math.floor(Number(raw && raw.fase));
-    const threatSetup =
-      raw && typeof raw.threatSetup === "boolean" ? raw.threatSetup : true;
+
+    let players = [];
+    if (raw && Array.isArray(raw.players) && raw.players.length > 0) {
+      players = raw.players.slice(0, PLAYER_LIMIT).map((player) => sanitizePlayer(player));
+    } else {
+      // Migrazione dalla 1.0.0: un solo giocatore con la vecchia Minaccia.
+      const minaccia = Math.floor(Number(raw && raw.minaccia));
+      const threatSetup =
+        raw && typeof raw.threatSetup === "boolean" ? raw.threatSetup : true;
+      players = [
+        sanitizePlayer({
+          threat: Number.isFinite(minaccia) ? minaccia : THREAT_DEFAULT,
+          setup: threatSetup,
+        }),
+      ];
+    }
+
     return {
       turno: Number.isFinite(turno) ? Math.max(1, turno) : 1,
-      minaccia: Number.isFinite(minaccia) ? Math.max(0, minaccia) : 30,
       fase: Number.isFinite(fase) ? Math.min(LAST_PHASE, Math.max(0, fase)) : 0,
-      // I salvataggi della versione precedente non hanno il flag:
-      // li consideriamo già impostati per non disturbare una partita in corso.
-      threatSetup,
+      players,
     };
+  }
+
+  function cloneState(source) {
+    return {
+      turno: source.turno,
+      fase: source.fase,
+      players: source.players.map((player) => ({ ...player })),
+    };
+  }
+
+  function playerName(player, index) {
+    const name = player && typeof player.name === "string" ? player.name.trim() : "";
+    return name || `Giocatore ${index + 1}`;
+  }
+
+  function playerById(id) {
+    return state.players.find((player) => player.id === id) || null;
+  }
+
+  function playerIndex(id) {
+    return state.players.findIndex((player) => player.id === id);
   }
 
   function makeId() {
@@ -444,7 +505,9 @@
   }
 
   function snapshot(label) {
-    return { state: { ...state }, label };
+    // Copia profonda: i giocatori sono oggetti, una copia superficiale
+    // farebbe condividere lo stesso oggetto tra stato e cronologia.
+    return { state: cloneState(state), label };
   }
 
   function trimHistory() {
@@ -467,29 +530,14 @@
   function render() {
     const faseChanged = !lastRendered || lastRendered.fase !== state.fase;
     const turnoChanged = !lastRendered || lastRendered.turno !== state.turno;
-    const minacciaChanged = !lastRendered || lastRendered.minaccia !== state.minaccia;
 
     el.turnoValue.textContent = String(state.turno);
-    el.minacciaValue.textContent = String(state.minaccia);
     el.turnoValue.classList.toggle("long", String(state.turno).length > 2);
-    el.minacciaValue.classList.toggle("long", String(state.minaccia).length > 2);
-    const needsSetup = !state.threatSetup;
-    el.threatCounter.classList.toggle("needs-setup", needsSetup);
-    el.threatHint.textContent = needsSetup
-      ? "Imposta la minaccia iniziale"
-      : "tocca il numero per impostarlo";
-    el.minacciaValue.setAttribute(
-      "aria-label",
-      `Minaccia ${state.minaccia}${state.minaccia >= THREAT_ALERT ? ", livello di allarme" : ""}${
-        needsSetup ? ", valore iniziale da impostare" : ""
-      }. Tocca per impostare un valore`
-    );
-    el.minacciaValue.classList.toggle("alert", state.minaccia >= THREAT_ALERT);
     el.turnoMinus.disabled = state.turno <= 1;
-    el.minacciaMinus.disabled = state.minaccia <= 0;
+
+    renderPlayers();
 
     if (turnoChanged && lastRendered) pop(el.turnoValue);
-    if (minacciaChanged && lastRendered) pop(el.minacciaValue);
 
     Array.from(el.stepper.children).forEach((pill, index) => {
       const current = index === state.fase;
@@ -510,7 +558,7 @@
     if (faseChanged) el.phaseCard.scrollTop = 0;
 
     if (state.fase === LAST_PHASE) {
-      el.nextHint.textContent = `→ Turno ${state.turno + 1} · Minaccia ${state.minaccia + 1}`;
+      el.nextHint.textContent = `→ Turno ${state.turno + 1} · Minaccia +1`;
     } else {
       el.nextHint.textContent = `→ ${FASI[state.fase + 1].name}`;
     }
@@ -523,7 +571,206 @@
       last ? `Annulla: ${last.label}` : "Nessuna azione da annullare"
     );
 
-    lastRendered = { turno: state.turno, minaccia: state.minaccia, fase: state.fase };
+    lastRendered = { turno: state.turno, fase: state.fase };
+  }
+
+  /* ---------- players ---------- */
+
+  const playerEls = new Map();
+  const playerLastThreat = new Map();
+  let renderedPlayersKey = null;
+  let tabletMode = false;
+
+  function isTablet() {
+    return tabletMode;
+  }
+
+  function renderPlayers() {
+    const tablet = isTablet();
+    const visible = tablet ? state.players : state.players.slice(0, 1);
+    const key = [
+      tablet ? "tablet" : "phone",
+      visible.map((player) => `${player.id}:${player.name}`).join("|"),
+      tablet && state.players.length < PLAYER_LIMIT ? "add" : "",
+    ].join("::");
+
+    if (key !== renderedPlayersKey) {
+      renderedPlayersKey = key;
+      playerEls.clear();
+      playerLastThreat.clear();
+      el.players.replaceChildren();
+
+      visible.forEach((player) => {
+        el.players.appendChild(buildPlayerCard(player));
+        playerLastThreat.set(player.id, player.threat);
+      });
+
+      if (tablet && state.players.length < PLAYER_LIMIT) {
+        el.players.appendChild(buildAddPlayerTile());
+      }
+    }
+
+    updatePlayerCards(visible);
+  }
+
+  function buildPlayerCard(player) {
+    const card = document.createElement("article");
+    card.className = "counter counter-player";
+    card.dataset.id = player.id;
+
+    // Didascalia solo su tablet: chiarisce che il numero è la Minaccia.
+    const caption = document.createElement("span");
+    caption.className = "player-caption";
+    caption.textContent = "Minaccia";
+    card.appendChild(caption);
+
+    const head = document.createElement("div");
+    head.className = "player-head";
+
+    const name = document.createElement("button");
+    name.type = "button";
+    name.className = "player-name";
+    name.addEventListener("click", () => openNameDialog(player.id));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "player-remove";
+    remove.innerHTML = "&times;";
+    remove.addEventListener("click", () => removePlayer(player.id));
+
+    head.append(name, remove);
+    card.appendChild(head);
+
+    const row = document.createElement("div");
+    row.className = "counter-row";
+
+    const minus = document.createElement("button");
+    minus.type = "button";
+    minus.className = "step";
+    minus.textContent = "−";
+
+    const value = document.createElement("button");
+    value.type = "button";
+    value.className = "counter-value value-btn";
+    value.setAttribute("aria-live", "polite");
+    value.addEventListener("click", () => openThreatDialog(player.id));
+
+    const plus = document.createElement("button");
+    plus.type = "button";
+    plus.className = "step";
+    plus.textContent = "+";
+
+    row.append(minus, value, plus);
+    card.appendChild(row);
+
+    const hint = document.createElement("span");
+    hint.className = "edit-hint";
+    card.appendChild(hint);
+
+    bindCounterButton(minus, playerCounter(player.id), -1);
+    bindCounterButton(plus, playerCounter(player.id), 1);
+
+    playerEls.set(player.id, { card, head, name, remove, minus, value, plus, hint });
+    return card;
+  }
+
+  function buildAddPlayerTile() {
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "counter counter-add";
+    add.setAttribute("aria-label", "Aggiungi un giocatore");
+    add.innerHTML =
+      '<span class="add-mark" aria-hidden="true">＋</span><span class="add-label">Aggiungi giocatore</span>';
+    add.addEventListener("click", addPlayer);
+    return add;
+  }
+
+  function updatePlayerCards(visible) {
+    const tablet = isTablet();
+    const canRemove = tablet && state.players.length > 1;
+
+    visible.forEach((player, index) => {
+      const refs = playerEls.get(player.id);
+      if (!refs) return;
+
+      const label = playerName(player, index);
+      const needsSetup = !player.setup;
+      const alert = player.threat >= THREAT_ALERT;
+      const previousThreat = playerLastThreat.get(player.id);
+
+      if (previousThreat !== undefined && previousThreat !== player.threat) {
+        pop(refs.value);
+      }
+      playerLastThreat.set(player.id, player.threat);
+
+      refs.name.textContent = tablet
+        ? label
+        : player.name.trim()
+          ? `Minaccia · ${label}`
+          : "Minaccia";
+      refs.name.disabled = !tablet;
+      refs.name.setAttribute(
+        "aria-label",
+        tablet ? `Rinomina ${label}` : `Minaccia di ${label}`
+      );
+
+      refs.remove.hidden = !canRemove;
+      refs.remove.setAttribute("aria-label", `Rimuovi ${label}`);
+
+      refs.value.textContent = String(player.threat);
+      refs.value.classList.toggle("long", String(player.threat).length > 2);
+      refs.value.classList.toggle("alert", alert);
+      refs.value.setAttribute(
+        "aria-label",
+        `Minaccia di ${label}: ${player.threat}${
+          alert ? ", livello di allarme" : ""
+        }${needsSetup ? ", valore iniziale da impostare" : ""}. Tocca per impostare un valore`
+      );
+
+      refs.minus.disabled = player.threat <= 0;
+      refs.minus.setAttribute("aria-label", `Diminuisci la minaccia di ${label}`);
+      refs.plus.setAttribute("aria-label", `Aumenta la minaccia di ${label}`);
+
+      refs.card.classList.toggle("needs-setup", needsSetup);
+      if (!needsSetup) refs.card.classList.remove("threat-pulse");
+      refs.hint.textContent = needsSetup
+        ? "Imposta la minaccia iniziale"
+        : "tocca il numero per impostarlo";
+    });
+  }
+
+  function pulseThreatReminders(onlyId) {
+    const cards = Array.from(
+      el.players.querySelectorAll(".counter-player.needs-setup")
+    ).filter((card) => !onlyId || card.dataset.id === onlyId);
+    if (cards.length === 0) return;
+
+    // Togli, forza un reflow e rimetti: l'animazione riparte anche se la
+    // card era già in promemoria (es. minaccia rimasta a 30).
+    cards.forEach((card) => card.classList.remove("threat-pulse"));
+    void el.players.offsetWidth;
+    cards.forEach((card) => card.classList.add("threat-pulse"));
+  }
+
+  function addPlayer() {
+    if (state.players.length >= PLAYER_LIMIT) return;
+    const player = makePlayer();
+    mutate("Aggiungi giocatore", () => {
+      state.players.push(player);
+    });
+    pulseThreatReminders(player.id);
+    vibrate(8);
+  }
+
+  function removePlayer(id) {
+    if (state.players.length <= 1) return;
+    const index = playerIndex(id);
+    if (index === -1) return;
+    const label = playerName(state.players[index], index);
+    mutate(`Rimuovi ${label}`, () => {
+      state.players = state.players.filter((player) => player.id !== id);
+    });
+    vibrate(8);
   }
 
   function renderPhaseBlocks() {
@@ -627,43 +874,61 @@
 
   /* ---------- counters ---------- */
 
-  const counters = {
-    turno: {
-      min: 1,
-      get: () => state.turno,
-      set: (value) => {
-        state.turno = value;
-      },
-    },
-    minaccia: {
-      min: 0,
-      get: () => state.minaccia,
-      set: (value) => {
-        state.minaccia = value;
-      },
+  const turnoCounter = {
+    min: 1,
+    label: () => "Turno",
+    get: () => state.turno,
+    set: (value) => {
+      state.turno = value;
     },
   };
 
-  function bindCounterButton(button, kind, delta) {
-    const counter = counters[kind];
-    const name = kind === "turno" ? "Turno" : "Minaccia";
+  function playerCounter(id) {
+    return {
+      min: 0,
+      label: () => {
+        const index = playerIndex(id);
+        return index === -1
+          ? "Minaccia"
+          : `Minaccia · ${playerName(state.players[index], index)}`;
+      },
+      get: () => {
+        const player = playerById(id);
+        return player ? player.threat : 0;
+      },
+      set: (value) => {
+        const player = playerById(id);
+        if (!player) return;
+        player.threat = value;
+        // Un cambio esplicito spegne il promemoria di quel giocatore.
+        player.setup = true;
+      },
+    };
+  }
+
+  function bindCounterButton(button, counter, delta) {
     let before = null;
     let timer = null;
     let interval = null;
 
+    const startSession = () => ({
+      snap: snapshot(counter.label()),
+      value: counter.get(),
+    });
+
     const applyStep = () => {
-      const next = Math.max(counter.min, counter.get() + delta);
-      if (next === counter.get()) return;
-      if (kind === "minaccia") state.threatSetup = true;
+      const current = counter.get();
+      const next = Math.min(THREAT_MAX, Math.max(counter.min, current + delta));
+      if (next === current) return;
       counter.set(next);
       render();
     };
 
-    const commit = (snap) => {
-      const amount = counter.get() - snap.state[kind];
+    const commit = (session) => {
+      const amount = counter.get() - session.value;
       if (amount === 0) return;
-      snap.label = `${name} ${amount > 0 ? "+" : ""}${amount}`;
-      history.push(snap);
+      session.snap.label = `${counter.label()} ${amount > 0 ? "+" : ""}${amount}`;
+      history.push(session.snap);
       trimHistory();
       save();
       render();
@@ -686,9 +951,9 @@
     };
 
     const singleStep = () => {
-      const snap = snapshot(name);
+      const session = startSession();
       applyStep();
-      commit(snap);
+      commit(session);
       vibrate(4);
     };
 
@@ -696,7 +961,7 @@
       if (event.button !== undefined && event.button !== 0) return;
       event.preventDefault();
       stop();
-      before = snapshot(name);
+      before = startSession();
       applyStep();
       timer = setTimeout(() => {
         interval = setInterval(applyStep, 80);
@@ -738,11 +1003,14 @@
 
   function advance() {
     if (state.fase === LAST_PHASE) {
-      const next = { turno: state.turno + 1, minaccia: state.minaccia + 1, fase: 0 };
-      mutate(`Turno ${next.turno}`, () => {
-        state.turno = next.turno;
-        state.minaccia = next.minaccia;
-        state.fase = next.fase;
+      const nextTurno = state.turno + 1;
+      mutate(`Turno ${nextTurno}`, () => {
+        state.turno = nextTurno;
+        state.fase = 0;
+        // Ristoro: +1 Minaccia a tutti i giocatori.
+        state.players.forEach((player) => {
+          player.threat = Math.min(THREAT_MAX, player.threat + 1);
+        });
       });
       playSfx("round");
     } else {
@@ -969,8 +1237,15 @@
     closeOverlay(el.processOverlay);
   }
 
-  function openThreatDialog() {
-    el.threatInput.value = String(state.minaccia);
+  let threatTargetId = null;
+
+  function openThreatDialog(id) {
+    const index = playerIndex(id);
+    if (index === -1) return;
+    threatTargetId = id;
+    const player = state.players[index];
+    el.threatSub.textContent = `${playerName(player, index)} · valore tra 0 e 999.`;
+    el.threatInput.value = String(player.threat);
     openOverlay(el.threatOverlay);
     requestAnimationFrame(() => {
       el.threatInput.focus();
@@ -986,11 +1261,14 @@
     const parsed = Number.parseInt(raw, 10);
     if (!Number.isFinite(parsed)) return;
 
-    const value = Math.min(999, Math.max(0, parsed));
-    if (value === state.minaccia) {
+    const player = playerById(threatTargetId);
+    if (!player) return;
+
+    const value = Math.min(THREAT_MAX, Math.max(0, parsed));
+    if (value === player.threat) {
       // Confermare lo stesso valore è comunque un'impostazione esplicita.
-      if (!state.threatSetup) {
-        state.threatSetup = true;
+      if (!player.setup) {
+        player.setup = true;
         save();
         render();
       }
@@ -998,17 +1276,63 @@
     }
 
     mutate(`Minaccia ${value}`, () => {
-      state.minaccia = value;
-      state.threatSetup = true;
+      const target = playerById(threatTargetId);
+      if (!target) return;
+      target.threat = value;
+      target.setup = true;
     });
     vibrate(8);
+  }
+
+  let nameTargetId = null;
+
+  function openNameDialog(id) {
+    const index = playerIndex(id);
+    if (index === -1) return;
+    nameTargetId = id;
+    const player = state.players[index];
+    el.nameTitle.textContent = `Nome · ${playerName(player, index)}`;
+    el.nameInput.value = player.name;
+    el.nameInput.setAttribute("aria-label", `Nome di ${playerName(player, index)}`);
+    openOverlay(el.nameOverlay);
+    requestAnimationFrame(() => {
+      el.nameInput.focus();
+      el.nameInput.select();
+    });
+  }
+
+  function confirmName() {
+    closeOverlay(el.nameOverlay);
+    const player = playerById(nameTargetId);
+    if (!player) return;
+
+    const value = el.nameInput.value
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, PLAYER_NAME_MAX);
+    if (value === player.name) return;
+
+    mutate(value ? `Nome: ${value}` : "Nome rimosso", () => {
+      const target = playerById(nameTargetId);
+      if (target) target.name = value;
+    });
+    vibrate(6);
   }
 
   function confirmReset() {
     closeOverlay(el.resetOverlay);
     mutate("Nuova partita", () => {
-      state = initialState();
+      // Nomi e roster restano: si riparte solo con la minaccia iniziale.
+      state.turno = 1;
+      state.fase = 0;
+      state.players = state.players.map((player) => ({
+        ...player,
+        threat: THREAT_DEFAULT,
+        setup: false,
+      }));
     });
+    // Anche se la Minaccia era già a 30, il promemoria deve ripulsare.
+    pulseThreatReminders();
     vibrate(10);
   }
 
@@ -1030,15 +1354,33 @@
     );
   }
 
+  function updateTabletMode() {
+    // Con la tastiera aperta l'altezza visibile cala: non deve far
+    // cambiare modalità mentre si scrive un nome o un valore.
+    const viewport = window.visualViewport;
+    const keyboardOpen = viewport ? window.innerHeight - viewport.height > 160 : false;
+    if (keyboardOpen) return;
+
+    // Lato corto: stabile in verticale, orizzontale e con la rotazione CSS.
+    const shortSide = Math.min(window.innerWidth, window.innerHeight);
+    const next = shortSide >= 600;
+    if (next === tabletMode) return;
+
+    tabletMode = next;
+    document.documentElement.classList.toggle("tablet", tabletMode);
+  }
+
   function layoutClasses() {
     const swapped = rotation === 90;
     const width = swapped ? window.innerHeight : window.innerWidth;
     const height = swapped ? window.innerWidth : window.innerHeight;
+    updateTabletMode();
     document.documentElement.classList.toggle("narrow", width <= 350);
     document.documentElement.classList.toggle("compact-height", height <= 600);
     document.documentElement.classList.toggle("very-short", height < 480);
     updateRotateLabel();
     updateViewportVars();
+    renderPlayers();
   }
 
   function updateRotateLabel() {
@@ -1227,6 +1569,7 @@
   applyRotation(rotation, false);
   buildStepper();
   render();
+  pulseThreatReminders();
 
   el.appVersion.textContent = `v${APP_VERSION}`;
 
@@ -1243,13 +1586,10 @@
     }
   }
 
-  bindCounterButton(el.turnoMinus, "turno", -1);
-  bindCounterButton(el.turnoPlus, "turno", 1);
-  bindCounterButton(el.minacciaMinus, "minaccia", -1);
-  bindCounterButton(el.minacciaPlus, "minaccia", 1);
+  bindCounterButton(el.turnoMinus, turnoCounter, -1);
+  bindCounterButton(el.turnoPlus, turnoCounter, 1);
 
   el.next.addEventListener("click", advance);
-  el.minacciaValue.addEventListener("click", openThreatDialog);
 
   el.rotateBtn.addEventListener("click", () => applyRotation(rotation === 0 ? 90 : 0));
   el.fullscreenBtn.addEventListener("click", toggleFullscreen);
@@ -1314,20 +1654,37 @@
     el.threatInput.value = el.threatInput.value.replace(/\D+/g, "").slice(0, 3);
   });
 
-  [el.threatOverlay, el.resetOverlay, el.notesOverlay, el.processOverlay].forEach(
-    (overlay) => {
-      overlay.addEventListener("click", (event) => {
-        if (event.target !== overlay) return;
-        if (overlay === el.notesOverlay) {
-          closeNotesSheet();
-        } else if (overlay === el.processOverlay) {
-          closeProcess();
-        } else {
-          closeOverlay(overlay);
-        }
-      });
+  el.nameCancel.addEventListener("click", () => closeOverlay(el.nameOverlay));
+  el.nameConfirm.addEventListener("click", confirmName);
+  el.nameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      confirmName();
     }
-  );
+  });
+  el.nameInput.addEventListener("input", () => {
+    // Un solo spazio alla volta, niente spazi iniziali.
+    el.nameInput.value = el.nameInput.value.replace(/\s+/g, " ").replace(/^\s+/, "");
+  });
+
+  [
+    el.threatOverlay,
+    el.resetOverlay,
+    el.notesOverlay,
+    el.processOverlay,
+    el.nameOverlay,
+  ].forEach((overlay) => {
+    overlay.addEventListener("click", (event) => {
+      if (event.target !== overlay) return;
+      if (overlay === el.notesOverlay) {
+        closeNotesSheet();
+      } else if (overlay === el.processOverlay) {
+        closeProcess();
+      } else {
+        closeOverlay(overlay);
+      }
+    });
+  });
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;

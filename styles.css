@@ -252,6 +252,17 @@ body.modal-open #rotator {
   gap: 10px;
 }
 
+/* I giocatori partecipano alla stessa griglia dei contatori:
+   su tablet si dispongono in riga e vanno a capo da soli. */
+.players {
+  display: contents;
+}
+
+.tablet .counters {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
 .counter {
   display: flex;
   flex-direction: column;
@@ -261,6 +272,141 @@ body.modal-open #rotator {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.counter-player {
+  position: relative;
+}
+
+.player-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.player-caption {
+  display: none;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6f6552;
+}
+
+.tablet .player-caption {
+  display: block;
+}
+
+.player-name {
+  max-width: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  cursor: default;
+}
+
+.player-name:disabled {
+  opacity: 1; /* resta leggibile: è un'etichetta, non un controllo spento */
+}
+
+.tablet .player-name {
+  padding: 0 24px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline dotted rgba(201, 162, 39, 0.5);
+  text-underline-offset: 3px;
+}
+
+.tablet .player-name:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.player-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #7d7060;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.player-remove[hidden] {
+  display: none;
+}
+
+.player-remove:active {
+  color: #ff8b7e;
+  background: #221a13;
+}
+
+/* Tile per aggiungere un giocatore (solo tablet, sotto i 4). */
+.counter-add {
+  justify-content: center;
+  gap: 4px;
+  min-height: 78px;
+  font-family: inherit;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed #3d321f;
+  cursor: pointer;
+}
+
+.counter-add:active {
+  background: #17130d;
+}
+
+.counter-add .add-mark {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.counter-add .add-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Tablet: card più strette, numeri proporzionati. */
+.tablet .counter-value {
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+}
+
+.tablet .counter-value.long {
+  font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+}
+
+.tablet .step {
+  flex-basis: 38px;
+}
+
+.tablet .edit-hint {
+  font-size: 0.55rem;
 }
 
 .counter-label {
@@ -301,28 +447,85 @@ body.modal-open #rotator {
 }
 
 .counter.needs-setup {
-  border-color: #4b3d18;
+  border-color: #6d5720;
+}
+
+/* Badge sempre visibile, anche quando il suggerimento testuale è nascosto
+   nelle altezze compatte. */
+.counter.needs-setup::before {
+  content: "!";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #1a1408;
+  background: linear-gradient(180deg, #f4dd8c, #c8a233);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(232, 198, 90, 0.55);
 }
 
 .counter.needs-setup .edit-hint {
-  color: var(--gold-bright);
+  margin-top: 3px;
+  padding: 1px 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #1a1408;
+  background: linear-gradient(180deg, #f0d878, #c8a233);
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(232, 198, 90, 0.28);
+}
+
+/* Con altezze compatte il suggerimento resta visibile se serve impostare. */
+.compact-height .counter.needs-setup .edit-hint,
+.very-short .counter.needs-setup .edit-hint {
+  display: inline-block;
 }
 
 .counter.needs-setup .value-btn {
   border-bottom-color: rgba(232, 198, 90, 0.8);
 }
 
-.counter.needs-setup .counter-value {
-  animation: threat-hint 2.2s ease-in-out 3;
+/* Ripple riavviabile: lo attiva il JS (primo avvio, nuova partita, nuovo
+   giocatore) e può ripartire anche se la card era già in promemoria. */
+.counter.threat-pulse {
+  animation: threat-card 0.9s ease-in-out 4;
+}
+
+.counter.threat-pulse .counter-value {
+  animation: threat-hint 0.9s ease-in-out 4;
+}
+
+@keyframes threat-card {
+  0%,
+  100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 0 0 1px rgba(232, 198, 90, 0.18);
+    transform: scale(1);
+  }
+  45% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 0 0 3px rgba(232, 198, 90, 0.85), 0 0 34px rgba(232, 198, 90, 0.45);
+    transform: scale(1.015);
+  }
 }
 
 @keyframes threat-hint {
   0%,
   100% {
-    text-shadow: none;
+    color: inherit;
+    transform: scale(1);
+    text-shadow: 0 0 0 rgba(232, 198, 90, 0);
   }
-  50% {
-    text-shadow: 0 0 16px rgba(232, 198, 90, 0.65);
+  45% {
+    color: #ffeaa6;
+    transform: scale(1.12);
+    text-shadow: 0 0 22px rgba(232, 198, 90, 0.95);
   }
 }
 
@@ -825,6 +1028,22 @@ body.modal-open #rotator {
 }
 
 .num-input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1.15rem;
+  color: var(--ink);
+  background: #0e0c09;
+  border: 1px solid #4b3d18;
+  border-radius: 12px;
+}
+
+.text-input:focus {
   outline: 2px solid var(--gold);
   outline-offset: 1px;
 }

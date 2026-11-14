@@ -7,6 +7,45 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-14
+
+### Added
+
+- **Modalità tablet**: da 600 px di lato corto compaiono fino a **4 indicatori
+  Minaccia**, uno per giocatore, con nome personalizzabile.
+- **Aggiunta e rimozione giocatori** (minimo 1, massimo 4) con tile “Aggiungi
+  giocatore”; anche queste azioni sono annullabili.
+- **Nome giocatore** modificabile toccando l'etichetta della card; se vuoto
+  resta “Giocatore N”.
+- **Promemoria della Minaccia per ogni giocatore**: pulsazione e suggerimento
+  indipendenti sulla singola card, ora più evidenti (anello dorato, badge “!” e
+  suggerimento in una pastiglia dorata).
+
+### Changed
+
+- Lo stato salvato ora contiene `players` (nome, minaccia, promemoria per
+  giocatore) al posto della singola `minaccia`.
+- **Ristoro**: +1 Minaccia a tutti i giocatori.
+- **Nuova partita**: conserva nomi e roster e riporta a 30 la minaccia di
+  ciascun giocatore.
+- Sul telefono resta una sola card Minaccia (giocatore 1), con il nome
+  accanto se impostato.
+
+### Fixed
+
+- I dialoghi della Minaccia e del nome mostrano il giocatore a cui si
+  riferiscono e restano raggiungibili con la tastiera aperta.
+- “Nuova partita” fa ripartire il promemoria anche quando la Minaccia è
+  rimasta al valore di default 30.
+
+### Migration
+
+- I salvataggi della 1.0.0 vengono convertiti automaticamente in un unico
+  giocatore con la Minaccia e il promemoria precedenti.
+
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.0
+
 ## [1.0.0] - 2026-11-14
 
 Prima release pubblica.
