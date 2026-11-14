@@ -53,16 +53,102 @@ Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indici
 
 Lo stile (tema scuro/oro) è in `styles.css`, variabili CSS in `:root`.
 
-## Versione e aggiornamenti
+## Versione, changelog e ciclo di rilascio
 
-La versione sta in `version.js` (`self.APP_VERSION`) ed è mostrata accanto al brand come `v1.0.0`. Il service worker usa la stessa stringa per il nome della cache (`lotr-lcg-v1.0.0`).
+Le modifiche di ogni rilascio sono elencate in [`CHANGELOG.md`](./CHANGELOG.md);
+qui sotto le regole per aggiornarlo insieme alla versione.
 
-Per pubblicare una modifica:
+### Dove sta la versione
 
-1. aggiorna `version.js` (es. `"1.0.1"`);
-2. ricarica l'app: il nuovo service worker installa la nuova cache e attiva subito la versione (`skipWaiting` + `claim`).
+La versione ha una sola fonte di verità: **`version.js`**
 
-Senza il bump il browser può continuare a servire i file dalla cache precedente.
+```js
+self.APP_VERSION = "1.0.0";
+```
+
+Da lì:
+
+- `app.js` la mostra accanto al brand (`LOTR LCG v1.0.0`);
+- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.0.0`).
+
+Non scrivere il numero di versione in altri file: si cambia solo `version.js` e
+tutto il resto si aggiorna di conseguenza.
+
+### Numeri di versione (Semantic Versioning)
+
+- **MAJOR** (`2.0.0`): modifiche che rompono i salvataggi esistenti (formato di
+  `localStorage`, note, cronologia) o cambiano radicalmente il modo d'uso.
+- **MINOR** (`1.1.0`): nuove funzioni retrocompatibili.
+- **PATCH** (`1.0.1`): correzioni di bug e ritocchi, senza nuove funzioni.
+
+### Quando aggiornare la versione
+
+Va aggiornata **a ogni rilascio che modifica file messi in cache**:
+`index.html`, `styles.css`, `app.js`, `version.js`, `manifest.webmanifest`,
+icone e audio.
+
+Il service worker serve quei file dalla cache: senza il bump, un telefono con
+l'app già installata può continuare a mostrare la versione vecchia.
+
+Non serve per modifiche solo a `README.md`, `CHANGELOG.md` o `.nojekyll`, che
+non fanno parte del precache.
+
+### Ciclo di rilascio
+
+1. Completa le modifiche e provale in locale (`python3 -m http.server`).
+2. Aggiorna `version.js` con il nuovo numero.
+3. Aggiungi la voce in `CHANGELOG.md` (data ISO, sezioni `Added`, `Changed`,
+   `Fixed`, `Removed`; sposta lì eventuali voci da `[Unreleased]`).
+4. Commit delle modifiche sul branch di lavoro.
+5. Porta le modifiche sul branch che GitHub Pages pubblica (nel setup qui sopra
+   `main`), ad esempio con un merge da `develop`.
+6. Crea il **tag annotato** sul commit che vuoi pubblicare, dal terminale:
+
+   ```bash
+   git tag -a v1.0.1 -m "v1.0.1"
+   ```
+
+7. Pusha commit e tag:
+
+   ```bash
+   git push origin main
+   git push origin v1.0.1
+   # oppure, se il branch è tracciato:
+   git push --follow-tags
+   ```
+
+8. Su GitHub: **Releases → Draft a new release**, scegli il tag appena pushato,
+   incolla la sezione corrispondente del changelog e pubblica. Pages ridistribuisce
+   da solo il branch.
+
+Il tag si crea **in locale** e si pusha con `git push`: non serve un pulsante
+speciale. In alternativa si può creare dalla UI:
+
+- **GitHub**: Releases → *Draft a new release* → *Choose a tag* → *Create new tag*;
+- **GitLab**: Repository → *Tags* → *New tag*, oppure Releases → *New release*.
+
+In tutti i casi il tag deve puntare **esattamente al commit che viene
+pubblicato**, e deve essere annotato (`-a`) così conserva autore e messaggio.
+Per controllare: `git show v1.0.1` e, nell'app, la scritta accanto al brand.
+
+### Rollback
+
+Non riusare mai un numero di versione già pubblicato: alcuni browser e la cache
+del service worker potrebbero confonderlo con quello vecchio.
+
+Per tornare indietro:
+
+1. ripristina il codice con `git revert` del commit problematico (o riparti dal
+   tag precedente con un nuovo commit);
+2. bumpa una **PATCH** (es. `1.0.2`);
+3. aggiungi la voce in `CHANGELOG.md` e ripeti il ciclo di rilascio.
+
+### Verifica rapida
+
+- Brand in alto: deve mostrare il numero appena rilasciato.
+- DevTools → *Application → Service Workers*: worker attivo.
+- DevTools → *Application → Cache Storage*: una sola cache, `lotr-lcg-v<versione>`;
+  le cache delle versioni precedenti vengono eliminate all'attivazione.
 
 ## Installazione e uso offline
 
@@ -113,5 +199,7 @@ sw.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
 tap.mp3  new-round.mp3
+CHANGELOG.md
+README.md
 .nojekyll
 ```
