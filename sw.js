@@ -15,6 +15,7 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./tap.mp3",
+  "./undo.mp3",
   "./new-round.mp3",
 ];
 
@@ -22,7 +23,10 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      // Un asset opzionale mancante non deve bloccare l'installazione.
+      .then((cache) =>
+        Promise.all(ASSETS.map((asset) => cache.add(asset).catch(() => null)))
+      )
       .then(() => self.skipWaiting())
   );
 });

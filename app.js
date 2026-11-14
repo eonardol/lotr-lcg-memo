@@ -244,6 +244,7 @@
 
   const sfx = {
     tap: makeSound("./tap.mp3", 0.45),
+    undo: makeSound("./undo.mp3", 0.7),
     round: makeSound("./new-round.mp3", 0.9),
   };
 
@@ -773,6 +774,14 @@
     vibrate(8);
   }
 
+  function acceptThreatSetup() {
+    // Andare avanti o cambiare fase vale come "ok, il valore attuale va bene"
+    // (30 è il default). Spegne il promemoria senza cambiare la minaccia.
+    state.players.forEach((player) => {
+      if (!player.setup) player.setup = true;
+    });
+  }
+
   function renderPhaseBlocks() {
     const key = `${state.fase}:${notesVersion}`;
     if (key === renderedPhaseKey) return;
@@ -993,6 +1002,7 @@
       pill.addEventListener("click", () => {
         if (state.fase === index) return;
         mutate(`Fase ${phase.name}`, () => {
+          acceptThreatSetup();
           state.fase = index;
         });
         vibrate(8);
@@ -1005,6 +1015,7 @@
     if (state.fase === LAST_PHASE) {
       const nextTurno = state.turno + 1;
       mutate(`Turno ${nextTurno}`, () => {
+        acceptThreatSetup();
         state.turno = nextTurno;
         state.fase = 0;
         // Ristoro: +1 Minaccia a tutti i giocatori.
@@ -1016,6 +1027,7 @@
     } else {
       const target = state.fase + 1;
       mutate(`Fase ${FASI[target].name}`, () => {
+        acceptThreatSetup();
         state.fase = target;
       });
     }
@@ -1354,15 +1366,71 @@
     );
   }
 
+  let appW = 0;
+  let appH = 0;
+  let layoutTimers = [];
+
+  function keyboardOpen() {
+    const viewport = window.visualViewport;
+    return viewport ? window.innerHeight - viewport.height > 160 : false;
+  }
+
+  function measureViewport() {
+    const viewport = window.visualViewport;
+    // Larghezza/altezza maggiori tra layout e visual viewport: il pinch-zoom
+    // non deve rimpicciolire l'app, ma in fullscreen una misura "vecchia"
+    // più piccola non deve lasciare spazi vuoti.
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    if (viewport) {
+      width = Math.max(width, Math.round(viewport.width));
+      height = Math.max(height, Math.round(viewport.height));
+    }
+
+    // In fullscreen il contenuto deve coincidere con lo schermo: su Android
+    // innerHeight/visualViewport restano a volte fermi alle misure
+    // precedenti, mentre screen è affidabile. Nelle PWA standalone ci
+    // limitiamo a non superare lo schermo (c'è ancora la status bar).
+    const standalone =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(display-mode: standalone), (display-mode: fullscreen)")
+        .matches;
+    const screenWidth = window.screen ? Math.round(window.screen.width) : 0;
+    const screenHeight = window.screen ? Math.round(window.screen.height) : 0;
+    const fullscreen = !!fullscreenElement();
+
+    if (fullscreen && screenWidth > 0 && screenHeight > 0) {
+      width = screenWidth;
+      height = screenHeight;
+    } else if (standalone) {
+      if (screenWidth > 0) width = Math.min(width, screenWidth);
+      if (screenHeight > 0) height = Math.min(height, screenHeight);
+    }
+
+    return {
+      width: Math.max(1, width || 0),
+      height: Math.max(1, height || 0),
+    };
+  }
+
+  function updateAppSize() {
+    // La tastiera non deve ridimensionare l'app sotto i popup.
+    if (keyboardOpen()) return;
+    const size = measureViewport();
+    if (size.width === appW && size.height === appH) return;
+    appW = size.width;
+    appH = size.height;
+    document.documentElement.style.setProperty("--app-w", `${appW}px`);
+    document.documentElement.style.setProperty("--app-h", `${appH}px`);
+  }
+
   function updateTabletMode() {
     // Con la tastiera aperta l'altezza visibile cala: non deve far
     // cambiare modalità mentre si scrive un nome o un valore.
-    const viewport = window.visualViewport;
-    const keyboardOpen = viewport ? window.innerHeight - viewport.height > 160 : false;
-    if (keyboardOpen) return;
+    if (keyboardOpen()) return;
 
     // Lato corto: stabile in verticale, orizzontale e con la rotazione CSS.
-    const shortSide = Math.min(window.innerWidth, window.innerHeight);
+    const shortSide = Math.min(appW || window.innerWidth, appH || window.innerHeight);
     const next = shortSide >= 600;
     if (next === tabletMode) return;
 
@@ -1371,9 +1439,12 @@
   }
 
   function layoutClasses() {
+    updateAppSize();
     const swapped = rotation === 90;
-    const width = swapped ? window.innerHeight : window.innerWidth;
-    const height = swapped ? window.innerWidth : window.innerHeight;
+    const baseW = appW || window.innerWidth;
+    const baseH = appH || window.innerHeight;
+    const width = swapped ? baseH : baseW;
+    const height = swapped ? baseW : baseH;
     updateTabletMode();
     document.documentElement.classList.toggle("narrow", width <= 350);
     document.documentElement.classList.toggle("compact-height", height <= 600);
@@ -1381,6 +1452,14 @@
     updateRotateLabel();
     updateViewportVars();
     renderPlayers();
+  }
+
+  function scheduleLayout() {
+    // Dopo il fullscreen Android aggiorna le misure con qualche frame di
+    // ritardo: ricalcoliamo subito e poi ancora quando si è assestato.
+    layoutClasses();
+    layoutTimers.forEach(clearTimeout);
+    layoutTimers = [setTimeout(layoutClasses, 260), setTimeout(layoutClasses, 800)];
   }
 
   function updateRotateLabel() {
@@ -1403,7 +1482,9 @@
     rotation = ((quarterTurns % 2) + 2) % 2 === 1 ? 90 : 0;
     el.rotator.dataset.rotation = String(rotation);
     el.rotator.scrollTop = 0;
-    layoutClasses();
+    // Ricalcolo immediato + assestamento: in fullscreen Android le misure
+    // del viewport possono aggiornarsi solo dopo il tocco.
+    scheduleLayout();
 
     if (persist) {
       save();
@@ -1471,6 +1552,8 @@
       /* fullscreen rifiutato o non disponibile: nessun cambio */
     }
     updateFullscreenButton();
+    // Il viewport in fullscreen può cambiare con qualche frame di ritardo.
+    scheduleLayout();
   }
 
   /* ---------- wake lock ---------- */
@@ -1600,15 +1683,21 @@
   } else {
     updateFullscreenButton();
   }
-  document.addEventListener("fullscreenchange", updateFullscreenButton);
-  document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+  document.addEventListener("fullscreenchange", () => {
+    updateFullscreenButton();
+    scheduleLayout();
+  });
+  document.addEventListener("webkitfullscreenchange", () => {
+    updateFullscreenButton();
+    scheduleLayout();
+  });
 
   document.addEventListener(
     "pointerdown",
     (event) => {
       const button =
         event.target instanceof Element ? event.target.closest("button") : null;
-      if (button && !button.disabled) playSfx("tap");
+      if (button && !button.disabled && button !== el.undo) playSfx("tap");
     },
     { capture: true, passive: true }
   );
@@ -1618,7 +1707,7 @@
     if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
     const button =
       event.target instanceof Element ? event.target.closest("button") : null;
-    if (button && !button.disabled) playSfx("tap");
+    if (button && !button.disabled && button !== el.undo) playSfx("tap");
   });
 
   el.notesClose.addEventListener("click", closeNotesSheet);
@@ -1632,9 +1721,15 @@
   el.undo.addEventListener("click", () => {
     const entry = history.pop();
     if (!entry) return;
+    playSfx("undo");
+    const hadPending = state.players.some((player) => !player.setup);
     state = sanitize(entry.state);
     save();
     render();
+    // Se l'undo fa ricomparire il promemoria, rilancialo una volta.
+    if (!hadPending && state.players.some((player) => !player.setup)) {
+      pulseThreatReminders();
+    }
     vibrate(8);
   });
 
@@ -1718,7 +1813,14 @@
   window.addEventListener("pointerdown", ensureWakeLock, { passive: true });
   window.addEventListener("focus", ensureWakeLock);
   window.addEventListener("resize", layoutClasses);
-  window.addEventListener("orientationchange", layoutClasses);
+  window.addEventListener("orientationchange", scheduleLayout);
+  if (
+    window.screen &&
+    window.screen.orientation &&
+    typeof window.screen.orientation.addEventListener === "function"
+  ) {
+    window.screen.orientation.addEventListener("change", scheduleLayout);
+  }
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", layoutClasses);
     window.visualViewport.addEventListener("scroll", layoutClasses);

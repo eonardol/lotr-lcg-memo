@@ -5,7 +5,7 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG**, pensata per il t
 - **Turno** e **Minaccia** (una per giocatore) con pulsanti `−` / `+` (pressione prolungata per scorrere veloce).
 - Tap sul numero della Minaccia per impostarla a un valore qualsiasi (default 30).
 - **Multi-giocatore su tablet** (lato corto ≥ 600 px): fino a **4 indicatori Minaccia**, uno per giocatore, con nome personalizzabile (minimo 1, massimo 4). Sul telefono resta la card singola del giocatore 1.
-- **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” la card pulsa con un anello dorato, mostra il badge “!” e una pastiglia “Imposta la minaccia iniziale” finché non imposti il valore (30 è solo un default), per ciascun giocatore.
+- **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” la card pulsa con un anello dorato, mostra il badge “!” e una pastiglia “Imposta la minaccia iniziale” finché non imposti il valore (30 è solo un default), per ciascun giocatore. Se premi AVANTI o salti a un'altra fase, il valore corrente (30) viene considerato confermato.
 - **Tracker delle 7 fasi** con tutti i passi numerati del regolamento (1.1, 1.2, …) e le **finestre di azione** evidenziate in rosso.
 - **Processi di combattimento in popup**: “Risolvere gli Attacchi dei Nemici” e “Risolvere gli Attacchi dei Giocatori”, apribili dai passi 6.4a e 6.8a.
 - **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino sullo stepper.
@@ -15,7 +15,7 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG**, pensata per il t
 - **Ruota interfaccia** con il tasto `↻`: passa tra verticale e orizzontale, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
 - **Schermo intero** con il tasto `⛶` accanto alla rotazione (dove il browser lo supporta).
 - **Blocco schermo on/off**: il badge in alto è un interruttore; la preferenza viene salvata.
-- **Suoni**: `tap.mp3` a ogni pulsante, `new-round.mp3` quando dal Ristoro parte il turno successivo.
+- **Suoni**: `tap.mp3` a ogni pulsante, `undo.mp3` quando annulli un'azione, `new-round.mp3` quando dal Ristoro parte il turno successivo.
 - Stato, fase, note e cronologia salvati in `localStorage`: riaprendo ritrovi la partita dov'era. Le note sopravvivono a “Nuova partita”.
 - **PWA installabile e offline first** (manifest + service worker): dopo il primo caricamento funziona anche senza rete. La versione è mostrata accanto al brand.
 
@@ -50,7 +50,7 @@ Tutto sta in `app.js`, tranne la versione:
 - `THREAT_ALERT`: soglia (50) oltre la quale la Minaccia diventa rossa.
 - `THREAT_MAX`: valore massimo impostabile per la Minaccia (999).
 - `NOTE_LIMIT`: lunghezza massima di una nota (240 caratteri).
-- `sfx`: file audio e volumi (`tap` 0.45, `round` 0.9). I file `tap.mp3` e `new-round.mp3` stanno nella radice del progetto.
+- `sfx`: file audio e volumi (`tap` 0.45, `undo` 0.7, `round` 0.9). I file `tap.mp3`, `undo.mp3` e `new-round.mp3` stanno nella radice del progetto.
 
 ## Giocatori e modalità tablet
 
@@ -75,13 +75,13 @@ qui sotto le regole per aggiornarlo insieme alla versione.
 La versione ha una sola fonte di verità: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.1.0";
+self.APP_VERSION = "1.1.1";
 ```
 
 Da lì:
 
-- `app.js` la mostra accanto al brand (`LOTR LCG v1.1.0`);
-- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.1.0`).
+- `app.js` la mostra accanto al brand (`LOTR LCG v1.1.1`);
+- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.1.1`).
 
 Non scrivere il numero di versione in altri file: si cambia solo `version.js` e
 tutto il resto si aggiorna di conseguenza.
@@ -91,7 +91,7 @@ tutto il resto si aggiorna di conseguenza.
 - **MAJOR** (`2.0.0`): modifiche che rompono i salvataggi esistenti (formato di
   `localStorage`, note, cronologia) o cambiano radicalmente il modo d'uso.
 - **MINOR** (`1.1.0`): nuove funzioni retrocompatibili.
-- **PATCH** (`1.1.1`): correzioni di bug e ritocchi, senza nuove funzioni.
+- **PATCH** (`1.1.2`): correzioni di bug e ritocchi, senza nuove funzioni.
 
 ### Quando aggiornare la versione
 
@@ -117,14 +117,14 @@ non fanno parte del precache.
 6. Crea il **tag annotato** sul commit che vuoi pubblicare, dal terminale:
 
    ```bash
-   git tag -a v1.1.1 -m "v1.1.1"
+   git tag -a v1.1.2 -m "v1.1.2"
    ```
 
 7. Pusha commit e tag:
 
    ```bash
    git push origin main
-   git push origin v1.1.1
+   git push origin v1.1.2
    # oppure, se il branch è tracciato:
    git push --follow-tags
    ```
@@ -141,7 +141,7 @@ speciale. In alternativa si può creare dalla UI:
 
 In tutti i casi il tag deve puntare **esattamente al commit che viene
 pubblicato**, e deve essere annotato (`-a`) così conserva autore e messaggio.
-Per controllare: `git show v1.1.1` e, nell'app, la scritta accanto al brand.
+Per controllare: `git show v1.1.2` e, nell'app, la scritta accanto al brand.
 
 ### Rollback
 
@@ -193,11 +193,12 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 - In orizzontale larghezza e altezza logiche si scambiano: l'interfaccia si compatta per restare interamente visibile.
 - L'interfaccia ha altezza fissa in ogni orientamento: stepper delle fasi e AVANTI non si spostano quando cambiano descrizione o note; se il contenuto della fase è troppo alto scorre solo quello. In landscape (altezze sotto 480px logici) i comandi si compattano per restare tutti visibili, senza rendere scorrevole la pagina.
 - La rotazione scelta è persistita in `localStorage`.
+- Le dimensioni dell'interfaccia sono calcolate in pixel dal viewport e riallineate dopo fullscreen e cambi di orientamento: su Android il viewport può aggiornarsi in ritardo e con le unità `vw/dvh` la rotazione in fullscreen poteva risultare “widescreen” con le fasi schiacciate.
 
 ## Note su audio e schermo intero
 
 - I browser permettono l'audio solo dopo un gesto dell'utente: sia il tap sia il suono di nuovo turno partono da un tocco, quindi vengono riprodotti correttamente. Se non senti nulla controlla il volume del telefono e l'interruttore del silenzioso.
-- Il volume dei due effetti è impostato in `app.js` (`sfx`); puoi sostituire i file `tap.mp3` e `new-round.mp3` mantenendo gli stessi nomi.
+- Il volume degli effetti è impostato in `app.js` (`sfx`); puoi sostituire `tap.mp3`, `undo.mp3` e `new-round.mp3` mantenendo gli stessi nomi. Il tasto Annulla usa solo `undo.mp3`, senza il tap generico sovrapposto.
 - Il tasto `⛶` usa la Fullscreen API sulla radice della pagina (non sul contenitore ruotato: i browser annullano la trasformazione dell'elemento fullscreen) e diventa “esci” quando sei a schermo intero. La rotazione resta quindi attiva anche in fullscreen. Su iPhone Safari la Fullscreen API per gli elementi non è disponibile: in quel caso il tasto viene nascosto.
 
 ## Struttura
@@ -210,7 +211,7 @@ version.js
 sw.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
-tap.mp3  new-round.mp3
+tap.mp3  undo.mp3  new-round.mp3
 CHANGELOG.md
 README.md
 .nojekyll

@@ -7,6 +7,30 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-14
+
+### Added
+
+- **Suono di undo**: premendo Annulla si sente `undo.mp3` (al posto del tap
+  generico). Il file è incluso nel precache del service worker.
+
+### Changed
+
+- **Promemoria della Minaccia più evidente**: anello dorato sulla card, badge
+  “!” e suggerimento in una pastiglia dorata, con pulsazione più marcata.
+- **AVANTI** e il salto a un'altra fase confermano implicitamente la Minaccia
+  iniziale corrente (30): il promemoria si spegne senza cambiare il valore.
+
+### Fixed
+
+- Il promemoria riparte anche con “Nuova partita” quando la Minaccia è rimasta
+  al valore di default 30 (prima l'animazione non si riavviava).
+- **Fullscreen + rotazione**: le dimensioni dell'interfaccia ruotata sono
+  calcolate in pixel e riallineate allo schermo, evitando l'effetto
+  “widescreen” con le fasi schiacciate su Android.
+- Il service worker completa l'installazione anche se un asset opzionale
+  (ad esempio un suono) non è disponibile.
+
 ## [1.1.0] - 2026-11-14
 
 ### Added
@@ -18,8 +42,7 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 - **Nome giocatore** modificabile toccando l'etichetta della card; se vuoto
   resta “Giocatore N”.
 - **Promemoria della Minaccia per ogni giocatore**: pulsazione e suggerimento
-  indipendenti sulla singola card, ora più evidenti (anello dorato, badge “!” e
-  suggerimento in una pastiglia dorata).
+  indipendenti sulla singola card.
 
 ### Changed
 
@@ -35,15 +58,14 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 
 - I dialoghi della Minaccia e del nome mostrano il giocatore a cui si
   riferiscono e restano raggiungibili con la tastiera aperta.
-- “Nuova partita” fa ripartire il promemoria anche quando la Minaccia è
-  rimasta al valore di default 30.
 
 ### Migration
 
 - I salvataggi della 1.0.0 vengono convertiti automaticamente in un unico
   giocatore con la Minaccia e il promemoria precedenti.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.1
 [1.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.0
 
 ## [1.0.0] - 2026-11-14
