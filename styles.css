@@ -39,25 +39,28 @@ body {
 
 /* ---------- rotator ---------- */
 
+/* Nel fullscreen alcuni browser Android aggiornano il viewport in ritardo:
+   le dimensioni in pixel (--app-w/--app-h) arrivano dal JS e sono più
+   affidabili delle unità vw/dvh in quella transizione. */
 #rotator {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  top: 0;
+  left: 0;
+  width: var(--app-w, 100vw);
+  height: var(--app-h, 100dvh);
   overflow-x: hidden;
   overflow-y: auto;
-  transform: translate(-50%, -50%) rotate(0deg);
-  transform-origin: center center;
+  transform-origin: top left;
+  transform: none;
   -webkit-overflow-scrolling: touch;
 }
 
+/* Ancorato in alto a sinistra: in fullscreen il centro del viewport può
+   essere calcolato su misure sbagliate, l'origine no. */
 #rotator[data-rotation="90"] {
-  width: 100vh;
-  width: 100dvh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
+  width: var(--app-h, 100dvh);
+  height: var(--app-w, 100vw);
+  transform: rotate(90deg) translateY(-100%);
 }
 
 #rotator:not([data-rotation="0"]) .app {
