@@ -1,6 +1,7 @@
 {
   "name": "Turno · LOTR LCG",
   "short_name": "Turno LCG",
+  "id": "./",
   "description": "Contatori e tracker delle fasi per Il Signore degli Anelli LCG.",
   "lang": "it",
   "start_url": "./",

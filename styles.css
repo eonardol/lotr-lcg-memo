@@ -166,6 +166,14 @@ body.modal-open #rotator {
   white-space: nowrap;
 }
 
+.brand-version {
+  margin-left: 6px;
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #6f6552;
+}
+
 .brand-mark {
   color: var(--gold);
 }
@@ -290,6 +298,32 @@ body.modal-open #rotator {
 .counter-value.alert {
   color: #ff6b5e;
   text-shadow: 0 0 16px rgba(224, 90, 78, 0.35);
+}
+
+.counter.needs-setup {
+  border-color: #4b3d18;
+}
+
+.counter.needs-setup .edit-hint {
+  color: var(--gold-bright);
+}
+
+.counter.needs-setup .value-btn {
+  border-bottom-color: rgba(232, 198, 90, 0.8);
+}
+
+.counter.needs-setup .counter-value {
+  animation: threat-hint 2.2s ease-in-out 3;
+}
+
+@keyframes threat-hint {
+  0%,
+  100% {
+    text-shadow: none;
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(232, 198, 90, 0.65);
+  }
 }
 
 .value-btn.alert {
@@ -725,17 +759,35 @@ body.modal-open #rotator {
 
 .overlay {
   position: fixed;
-  inset: 0;
+  top: var(--vv-top, 0px);
+  left: 0;
+  width: 100%;
+  height: var(--vv-h, 100dvh);
   z-index: 10;
-  display: grid;
-  place-items: center;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: max(18px, 6vh) 16px max(16px, env(safe-area-inset-bottom));
   background: rgba(5, 4, 3, 0.72);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 
+/* Con l'interfaccia ruotata gli assi sono scambiati: l'overlay deve
+   coprire l'area visibile sopra la tastiera nel sistema ruotato. */
+#rotator[data-rotation="90"] .overlay {
+  top: 0;
+  left: var(--vv-top, 0px);
+  width: var(--vv-h, 100dvh);
+  height: 100%;
+}
+
 .panel {
+  flex: 0 1 auto;
+  min-height: 0;
   width: min(360px, 100%);
   padding: 20px;
   background: linear-gradient(180deg, #201a12, #14100b);
@@ -823,6 +875,7 @@ body.modal-open #rotator {
 .panel-notes {
   width: min(420px, 100%);
   max-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -841,6 +894,7 @@ body.modal-open #rotator {
 .panel-process {
   width: min(520px, 100%);
   max-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -1116,6 +1170,10 @@ body.modal-open #rotator {
 
 .narrow .top-actions {
   gap: 4px;
+}
+
+.narrow .brand-version {
+  display: none;
 }
 
 .narrow .icon-action {

@@ -1,6 +1,9 @@
 (() => {
   "use strict";
 
+  const APP_VERSION =
+    typeof self.APP_VERSION === "string" && self.APP_VERSION ? self.APP_VERSION : "dev";
+
   const step = (id, text, options) => ({ id, kind: "step", text, ...options });
   const actionWindow = (id) => ({ id, kind: "window" });
 
@@ -168,8 +171,11 @@
     fullscreenBtn: $("fullscreenBtn"),
     wakeBadge: $("wakeBadge"),
     wakeText: $("wakeText"),
+    appVersion: $("appVersion"),
     turnoValue: $("turnoValue"),
     minacciaValue: $("minacciaValue"),
+    threatCounter: $("threatCounter"),
+    threatHint: $("threatHint"),
     turnoMinus: $("turnoMinus"),
     turnoPlus: $("turnoPlus"),
     minacciaMinus: $("minacciaMinus"),
@@ -207,7 +213,12 @@
     resetCancel: $("resetCancel"),
   };
 
-  const initialState = () => ({ turno: 1, minaccia: 30, fase: 0 });
+  const initialState = () => ({
+    turno: 1,
+    minaccia: 30,
+    fase: 0,
+    threatSetup: false,
+  });
 
   /* ---------- audio ---------- */
 
@@ -263,10 +274,15 @@
     const turno = Math.floor(Number(raw && raw.turno));
     const minaccia = Math.floor(Number(raw && raw.minaccia));
     const fase = Math.floor(Number(raw && raw.fase));
+    const threatSetup =
+      raw && typeof raw.threatSetup === "boolean" ? raw.threatSetup : true;
     return {
       turno: Number.isFinite(turno) ? Math.max(1, turno) : 1,
       minaccia: Number.isFinite(minaccia) ? Math.max(0, minaccia) : 30,
       fase: Number.isFinite(fase) ? Math.min(LAST_PHASE, Math.max(0, fase)) : 0,
+      // I salvataggi della versione precedente non hanno il flag:
+      // li consideriamo già impostati per non disturbare una partita in corso.
+      threatSetup,
     };
   }
 
@@ -457,9 +473,16 @@
     el.minacciaValue.textContent = String(state.minaccia);
     el.turnoValue.classList.toggle("long", String(state.turno).length > 2);
     el.minacciaValue.classList.toggle("long", String(state.minaccia).length > 2);
+    const needsSetup = !state.threatSetup;
+    el.threatCounter.classList.toggle("needs-setup", needsSetup);
+    el.threatHint.textContent = needsSetup
+      ? "Imposta la minaccia iniziale"
+      : "tocca il numero per impostarlo";
     el.minacciaValue.setAttribute(
       "aria-label",
-      `Minaccia ${state.minaccia}${state.minaccia >= THREAT_ALERT ? ", livello di allarme" : ""}. Tocca per impostare un valore`
+      `Minaccia ${state.minaccia}${state.minaccia >= THREAT_ALERT ? ", livello di allarme" : ""}${
+        needsSetup ? ", valore iniziale da impostare" : ""
+      }. Tocca per impostare un valore`
     );
     el.minacciaValue.classList.toggle("alert", state.minaccia >= THREAT_ALERT);
     el.turnoMinus.disabled = state.turno <= 1;
@@ -629,7 +652,10 @@
     let interval = null;
 
     const applyStep = () => {
-      counter.set(Math.max(counter.min, counter.get() + delta));
+      const next = Math.max(counter.min, counter.get() + delta);
+      if (next === counter.get()) return;
+      if (kind === "minaccia") state.threatSetup = true;
+      counter.set(next);
       render();
     };
 
@@ -961,10 +987,19 @@
     if (!Number.isFinite(parsed)) return;
 
     const value = Math.min(999, Math.max(0, parsed));
-    if (value === state.minaccia) return;
+    if (value === state.minaccia) {
+      // Confermare lo stesso valore è comunque un'impostazione esplicita.
+      if (!state.threatSetup) {
+        state.threatSetup = true;
+        save();
+        render();
+      }
+      return;
+    }
 
     mutate(`Minaccia ${value}`, () => {
       state.minaccia = value;
+      state.threatSetup = true;
     });
     vibrate(8);
   }
@@ -979,6 +1014,22 @@
 
   /* ---------- rotation ---------- */
 
+  function updateViewportVars() {
+    // L'overlay deve coprire l'area realmente visibile: quando la tastiera
+    // si apre, visualViewport si restringe mentre il layout resta fermo.
+    const viewport = window.visualViewport;
+    const height = viewport ? viewport.height : window.innerHeight;
+    const top = viewport ? viewport.offsetTop : 0;
+    document.documentElement.style.setProperty(
+      "--vv-h",
+      `${Math.max(0, Math.round(height))}px`
+    );
+    document.documentElement.style.setProperty(
+      "--vv-top",
+      `${Math.max(0, Math.round(top))}px`
+    );
+  }
+
   function layoutClasses() {
     const swapped = rotation === 90;
     const width = swapped ? window.innerHeight : window.innerWidth;
@@ -987,6 +1038,7 @@
     document.documentElement.classList.toggle("compact-height", height <= 600);
     document.documentElement.classList.toggle("very-short", height < 480);
     updateRotateLabel();
+    updateViewportVars();
   }
 
   function updateRotateLabel() {
@@ -1176,6 +1228,21 @@
   buildStepper();
   render();
 
+  el.appVersion.textContent = `v${APP_VERSION}`;
+
+  if ("serviceWorker" in navigator) {
+    const registerWorker = () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {
+        /* niente service worker: l'app resta usabile online */
+      });
+    };
+    if (document.readyState === "complete") {
+      registerWorker();
+    } else {
+      window.addEventListener("load", registerWorker, { once: true });
+    }
+  }
+
   bindCounterButton(el.turnoMinus, "turno", -1);
   bindCounterButton(el.turnoPlus, "turno", 1);
   bindCounterButton(el.minacciaMinus, "minaccia", -1);
@@ -1297,6 +1364,7 @@
   window.addEventListener("orientationchange", layoutClasses);
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", layoutClasses);
+    window.visualViewport.addEventListener("scroll", layoutClasses);
   }
 
   if (!("wakeLock" in navigator)) {
