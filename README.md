@@ -4,8 +4,9 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pens
 
 - **Turno** e **Minaccia** con pulsanti `−` / `+` (pressione prolungata per scorrere veloce).
 - Tap sul numero della Minaccia per impostarla a un valore qualsiasi (default 30).
-- **Tracker delle 7 fasi** con promemoria: Risorsa, Pianificazione, Impresa, Viaggio, Incontro, Combattimento, Ristoro.
-- **Note personalizzate per fase**: più note per fase, con aggiunta, modifica ed eliminazione. Restano visibili sotto la descrizione e sono segnalate da un puntino sullo stepper.
+- **Tracker delle 7 fasi** con tutti i passi numerati del regolamento (1.1, 1.2, …) e le **finestre di azione** evidenziate in rosso.
+- **Processi di combattimento in popup**: “Risolvere gli Attacchi dei Nemici” e “Risolvere gli Attacchi dei Giocatori”, apribili dai passi 6.4a e 6.8a.
+- **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino sullo stepper.
 - **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1`, di nuovo Risorsa).
 - **Minaccia in rosso da 50 in su**.
 - **Undo** a 30 passi: annulla tap sbagliati, cambi fase, avanzamenti e anche il reset.
@@ -38,14 +39,15 @@ Tutti i percorsi sono relativi, quindi funziona sia come sito "root" sia come so
 
 Tutto sta in `app.js`:
 
-- `PHASES`: nomi e descrizioni delle fasi.
+- `FASI`: per ogni fase il nome e i blocchi, creati con `step("1.1", "…")` e `actionWindow("w-1")`.
+- `PROCESSI`: i due processi di combattimento mostrati nei popup (passi e finestre di azione).
 - `initialState()`: valori di partenza (`turno: 1`, `minaccia: 30`, `fase: 0`).
 - `HISTORY_LIMIT`: quanti passaggi di undo conservare.
 - `THREAT_ALERT`: soglia (50) oltre la quale la Minaccia diventa rossa.
 - `NOTE_LIMIT`: lunghezza massima di una nota (240 caratteri).
 - `sfx`: file audio e volumi (`tap` 0.45, `round` 0.9). I file `tap.mp3` e `new-round.mp3` stanno nella radice del progetto.
 
-Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per numero di fase (`"0"` = Risorsa, `"2"` = Impresa, …). Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
+Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per contenitore e spazio: `"0::1.3"` = dopo il passo 1.3 della fase Risorsa, `"0::end"` = fine fase, `"proc:nemici::6.4.1"` = dopo 6.4.1 nel processo degli attacchi dei nemici. I salvataggi del vecchio formato (note per fase) vengono migrati automaticamente a fine fase. Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
 
 Lo stile (tema scuro/oro) è in `styles.css`, variabili CSS in `:root`.
 

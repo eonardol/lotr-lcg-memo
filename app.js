@@ -1,21 +1,164 @@
 (() => {
   "use strict";
 
-  const PHASES = [
-    { name: "Risorsa", desc: "Riscuotere risorse e pescare una carta" },
-    { name: "Pianificazione", desc: "Gioca alleati e aggiunte spendendo risorse" },
-    { name: "Impresa", desc: "Destinare i personaggi, allestimento (rivela la carta incontro) e risoluzione dell'impresa" },
-    { name: "Viaggio", desc: "Scegli un luogo e mettilo come luogo attivo" },
-    { name: "Incontro", desc: "Impegno facoltativo e verifiche di impegno" },
-    { name: "Combattimento", desc: "Distribuire carte ombra, i nemici attaccano, poi attacchi tu; assegna i danni" },
-    { name: "Ristoro", desc: "Ripristinare le carte esaurite, aumentare la minaccia" },
+  const step = (id, text, options) => ({ id, kind: "step", text, ...options });
+  const actionWindow = (id) => ({ id, kind: "window" });
+
+  // Passi esatti del regolamento. `id` è anche l'ancora delle note:
+  // una nota agganciata a "1.3" compare tra 1.3 e il blocco successivo.
+  // "end" è la posizione finale della fase/processo.
+  const FASI = [
+    {
+      name: "Risorsa",
+      blocks: [
+        step("1.1", "Inizio della Fase di Risorsa"),
+        step("1.2", "Riscuotere risorse"),
+        step("1.3", "Pescare carte"),
+        actionWindow("w-1"),
+        step("1.4", "Fine della Fase di Risorsa"),
+      ],
+    },
+    {
+      name: "Pianificazione",
+      blocks: [
+        step("2.1", "Inizio della Fase di Pianificazione"),
+        step(
+          "2.2",
+          "Finestra di azione speciale (il giocatore attivo può giocare anche alleati e aggiunte)"
+        ),
+        step(
+          "2.3",
+          "Il giocatore successivo (in ordine di gioco) diventa il giocatore attivo (tornare a 2.2 o proseguire con 2.4)"
+        ),
+        step("2.4", "Fine della Fase di Pianificazione"),
+      ],
+    },
+    {
+      name: "Impresa",
+      blocks: [
+        step("3.1", "Inizio della Fase di Impresa"),
+        actionWindow("w-1"),
+        step("3.2", "Destinare i personaggi"),
+        actionWindow("w-2"),
+        step("3.3", "Allestimento"),
+        actionWindow("w-3"),
+        step("3.4", "Risoluzione dell'impresa"),
+        actionWindow("w-4"),
+        step("3.5", "Fine della Fase di Impresa"),
+      ],
+    },
+    {
+      name: "Viaggio",
+      blocks: [
+        step("4.1", "Inizio della Fase di Viaggio"),
+        step("4.2", "Opportunità di viaggio"),
+        actionWindow("w-1"),
+        step("4.3", "Fine della Fase di Viaggio"),
+      ],
+    },
+    {
+      name: "Incontro",
+      blocks: [
+        step("5.1", "Inizio della Fase di Incontro"),
+        step("5.2", "Impegno facoltativo"),
+        actionWindow("w-1"),
+        step("5.3", "Verifiche di impegno"),
+        actionWindow("w-2"),
+        step("5.4", "Fine della Fase di Incontro"),
+      ],
+    },
+    {
+      name: "Combattimento",
+      blocks: [
+        step("6.1", "Inizio della Fase di Combattimento"),
+        step("6.2", "Distribuire le carte ombra"),
+        actionWindow("w-1"),
+        step("6.3", "Inizio del processo “Risolvere gli Attacchi dei Nemici”"),
+        step(
+          "6.4a",
+          "Il giocatore attivo risolve l'attacco del nemico successivo. Ripetere questo passo finché tutti i nemici validi di quel giocatore non hanno attaccato",
+          { process: "nemici" }
+        ),
+        step(
+          "6.5",
+          "Il giocatore successivo diventa il giocatore attivo (tornare a 6.4a). Se tutti i giocatori hanno risolto gli attacchi dei nemici, proseguire con 6.6"
+        ),
+        step("6.6", "Fine del processo “Risolvere gli Attacchi dei Nemici”"),
+        step("6.7", "Inizio del processo “Risolvere gli Attacchi dei Giocatori”"),
+        step(
+          "6.8a",
+          "Il giocatore attivo dichiara l'attacco successivo. Ripetere questo passo finché tutti gli attacchi validi di quel giocatore non sono stati effettuati",
+          { process: "giocatori" }
+        ),
+        step(
+          "6.9",
+          "Il giocatore successivo diventa il giocatore attivo (tornare a 6.8a). Se tutti i giocatori hanno risolto gli attacchi dei giocatori, proseguire con 6.10"
+        ),
+        step("6.10", "Fine del processo “Risolvere gli Attacchi dei Giocatori”"),
+        step("6.11", "Fine della Fase di Combattimento. Scartare tutte le carte ombra"),
+      ],
+    },
+    {
+      name: "Ristoro",
+      blocks: [
+        step("7.1", "Inizio della Fase di Ristoro"),
+        step("7.2", "Ripristinare le carte"),
+        step("7.3", "Aumentare la Minaccia (viene fatto in automatico da questa app)"),
+        step("7.4", "Passare il segnalino primo giocatore"),
+        actionWindow("w-1"),
+        step("7.5", "Fine della Fase di Ristoro"),
+      ],
+    },
   ];
+
+  // Processi di combattimento mostrati nei popup, a partire dai passi 6.3 e 6.7.
+  const PROCESSI = {
+    nemici: {
+      name: "Risolvere gli Attacchi dei Nemici",
+      blocks: [
+        step("6.4b", "Lancio dell'attacco del nemico (il giocatore attivo sceglie il nemico)"),
+        actionWindow("w-1"),
+        step("6.4.1", "Dichiarare il difensore"),
+        actionWindow("w-2"),
+        step("6.4.2", "Risolvere l'effetto di ombra"),
+        actionWindow("w-3"),
+        step("6.4.3", "Determinare i danni da combattimento"),
+        actionWindow("w-4"),
+        step(
+          "6.4.4",
+          "Fine dell'attacco del nemico. Se il giocatore attivo deve risolvere altri attacchi dei nemici, ritornare a 6.4a. Altrimenti, proseguire con 6.5"
+        ),
+      ],
+    },
+    giocatori: {
+      name: "Risolvere gli Attacchi dei Giocatori",
+      blocks: [
+        step(
+          "6.8b",
+          "Lancio dell'attacco del giocatore (il giocatore attivo dichiara bersaglio dell'attacco e attaccante/i)"
+        ),
+        step("6.8.1", "Opzione Distanza"),
+        actionWindow("w-1"),
+        step("6.8.2", "Determinare la Forza di Attacco"),
+        actionWindow("w-2"),
+        step("6.8.3", "Determinare i danni da combattimento"),
+        actionWindow("w-3"),
+        step(
+          "6.8.4",
+          "Fine dell'attacco del giocatore. Se il giocatore attivo deve risolvere altri attacchi del giocatore, ritornare a 6.8a. Altrimenti, proseguire con 6.9"
+        ),
+      ],
+    },
+  };
 
   const STORAGE_KEY = "lotr-lcg-memo/v1";
   const HISTORY_LIMIT = 30;
   const NOTE_LIMIT = 240;
+  const NOTES_PER_GAP = 30;
   const THREAT_ALERT = 50;
-  const LAST_PHASE = PHASES.length - 1;
+  const LAST_PHASE = FASI.length - 1;
+  // Fase di Combattimento: i suoi processi condividono il pallino delle note.
+  const PROCESSI_FASE = { 5: ["nemici", "giocatori"] };
 
   const $ = (id) => document.getElementById(id);
 
@@ -34,18 +177,20 @@
     stepper: $("stepper"),
     phaseNum: $("phaseNum"),
     phaseName: $("phaseName"),
-    phaseDesc: $("phaseDesc"),
+    phaseCard: $("phaseCard"),
+    phaseSteps: $("phaseSteps"),
     next: $("next"),
     nextHint: $("nextHint"),
     undo: $("undo"),
     undoLabel: $("undoLabel"),
     reset: $("reset"),
-    notesBtn: $("notesBtn"),
-    notesBtnLabel: $("notesBtnLabel"),
-    phaseNotes: $("phaseNotes"),
-    phaseNotesList: $("phaseNotesList"),
+    processOverlay: $("processOverlay"),
+    processTitle: $("processTitle"),
+    processClose: $("processClose"),
+    processList: $("processList"),
     notesOverlay: $("notesOverlay"),
     notesTitle: $("notesTitle"),
+    notesSub: $("notesSub"),
     notesClose: $("notesClose"),
     notesList: $("notesList"),
     notesEmpty: $("notesEmpty"),
@@ -104,8 +249,13 @@
   let editingNoteId = null;
   let deletingNoteId = null;
   let lastRendered = null;
-  let activeOverlay = null;
-  let overlayReturnFocus = null;
+  let noteScope = null;
+  let activeProcess = null;
+  let notesVersion = 0;
+  let renderedPhaseKey = null;
+  let renderedProcessKey = null;
+  const overlayStack = [];
+  const overlayFocus = new Map();
 
   /* ---------- persistence ---------- */
 
@@ -127,25 +277,99 @@
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 
+  function isProcessContainer(container) {
+    return container.startsWith("proc:");
+  }
+
+  function blocksFor(container) {
+    if (isProcessContainer(container)) {
+      const process = PROCESSI[container.slice(5)];
+      return process ? process.blocks : [];
+    }
+    const phase = FASI[Number(container)];
+    return phase ? phase.blocks : [];
+  }
+
+  function containerTitle(container) {
+    if (isProcessContainer(container)) {
+      const process = PROCESSI[container.slice(5)];
+      return process ? process.name : "Processo";
+    }
+    const phase = FASI[Number(container)];
+    return phase ? phase.name : "Fase";
+  }
+
+  function isKnownContainer(container) {
+    if (isProcessContainer(container)) return !!PROCESSI[container.slice(5)];
+    return /^\d+$/.test(container) && FASI[Number(container)] !== undefined;
+  }
+
+  // Le note stanno "tra" due blocchi: l'ancora è l'id del blocco che precede
+  // lo spazio, oppure "end" per lo spazio finale.
+  function validAnchors(container) {
+    const anchors = new Set(["end"]);
+    blocksFor(container)
+      .slice(0, -1)
+      .forEach((block) => anchors.add(block.id));
+    return anchors;
+  }
+
+  function noteKey(container, anchor) {
+    return `${container}::${anchor}`;
+  }
+
+  function getNotes(container, anchor) {
+    return notes[noteKey(container, anchor)] || [];
+  }
+
+  function gapLabel(container, anchor) {
+    const blocks = blocksFor(container);
+    const finale = isProcessContainer(container) ? "Fine del processo" : "Fine della fase";
+    if (anchor === "end") return finale;
+
+    const index = blocks.findIndex((block) => block.id === anchor);
+    if (index === -1) return finale;
+
+    const next = blocks[index + 1];
+    if (!next) return finale;
+
+    const label = (block) => (block.kind === "window" ? "la finestra di azione" : block.id);
+    return `Tra ${label(blocks[index])} e ${label(next)}`;
+  }
+
+  function phaseHasNotes(index) {
+    const prefixes = [`${index}::`];
+    (PROCESSI_FASE[index] || []).forEach((kind) => prefixes.push(`proc:${kind}::`));
+    return Object.keys(notes).some((key) =>
+      prefixes.some((prefix) => key.startsWith(prefix))
+    );
+  }
+
   function sanitizeNotes(raw) {
     const clean = {};
     if (!raw || typeof raw !== "object") return clean;
 
-    for (let index = 0; index <= LAST_PHASE; index += 1) {
-      const list = raw[String(index)];
-      if (!Array.isArray(list)) continue;
+    const add = (key, value) => {
+      if (!Array.isArray(value)) return;
+      const split = key.indexOf("::");
+      // Formato vecchio ({"0": [...]}) e nuovo ({"0::1.3": [...]})
+      const container = split === -1 ? key : key.slice(0, split);
+      const anchor = split === -1 ? "end" : key.slice(split + 2);
+      if (!isKnownContainer(container) || !validAnchors(container).has(anchor)) return;
 
-      const phaseNotes = list
+      const list = value
         .filter((note) => note && typeof note.text === "string")
         .map((note) => ({
           id: typeof note.id === "string" && note.id ? note.id : makeId(),
           text: note.text.slice(0, NOTE_LIMIT).trim(),
         }))
         .filter((note) => note.text.length > 0)
-        .slice(0, 30);
+        .slice(0, NOTES_PER_GAP);
 
-      if (phaseNotes.length > 0) clean[String(index)] = phaseNotes;
-    }
+      if (list.length > 0) clean[noteKey(container, anchor)] = list;
+    };
+
+    Object.entries(raw).forEach(([key, value]) => add(key, value));
     return clean;
   }
 
@@ -225,6 +449,7 @@
   /* ---------- render ---------- */
 
   function render() {
+    const faseChanged = !lastRendered || lastRendered.fase !== state.fase;
     const turnoChanged = !lastRendered || lastRendered.turno !== state.turno;
     const minacciaChanged = !lastRendered || lastRendered.minaccia !== state.minaccia;
 
@@ -247,7 +472,7 @@
       const current = index === state.fase;
       pill.classList.toggle("current", current);
       pill.classList.toggle("done", index < state.fase);
-      pill.classList.toggle("has-notes", (notes[String(index)] || []).length > 0);
+      pill.classList.toggle("has-notes", phaseHasNotes(index));
       if (current) {
         pill.setAttribute("aria-current", "step");
       } else {
@@ -255,16 +480,16 @@
       }
     });
 
-    const phase = PHASES[state.fase];
+    const phase = FASI[state.fase];
     el.phaseNum.textContent = String(state.fase + 1);
     el.phaseName.textContent = phase.name;
-    el.phaseDesc.textContent = phase.desc;
-    renderNotesPreview();
+    renderPhaseBlocks();
+    if (faseChanged) el.phaseCard.scrollTop = 0;
 
     if (state.fase === LAST_PHASE) {
       el.nextHint.textContent = `→ Turno ${state.turno + 1} · Minaccia ${state.minaccia + 1}`;
     } else {
-      el.nextHint.textContent = `→ ${PHASES[state.fase + 1].name}`;
+      el.nextHint.textContent = `→ ${FASI[state.fase + 1].name}`;
     }
 
     const last = history[history.length - 1];
@@ -275,7 +500,106 @@
       last ? `Annulla: ${last.label}` : "Nessuna azione da annullare"
     );
 
-    lastRendered = { turno: state.turno, minaccia: state.minaccia };
+    lastRendered = { turno: state.turno, minaccia: state.minaccia, fase: state.fase };
+  }
+
+  function renderPhaseBlocks() {
+    const key = `${state.fase}:${notesVersion}`;
+    if (key === renderedPhaseKey) return;
+    renderedPhaseKey = key;
+    renderBlocks(el.phaseSteps, String(state.fase));
+  }
+
+  function renderProcessList() {
+    if (!activeProcess) return;
+    const key = `${activeProcess}:${notesVersion}`;
+    if (key === renderedProcessKey) return;
+    renderedProcessKey = key;
+    renderBlocks(el.processList, `proc:${activeProcess}`);
+  }
+
+  function renderBlocks(parent, container) {
+    const blocks = blocksFor(container);
+    parent.replaceChildren();
+
+    blocks.forEach((block, index) => {
+      if (block.kind === "window") {
+        const windowEl = document.createElement("div");
+        windowEl.className = "action-window";
+        windowEl.textContent = "Finestra di azione";
+        parent.appendChild(windowEl);
+      } else {
+        const row = document.createElement("div");
+        row.className = "step-block";
+
+        const num = document.createElement("span");
+        num.className = "step-num";
+        num.textContent = block.id;
+
+        const body = document.createElement("div");
+        body.className = "step-body";
+
+        const text = document.createElement("p");
+        text.className = "step-text";
+        text.textContent = block.text;
+        body.appendChild(text);
+
+        if (block.process) body.appendChild(processButton(block.process));
+
+        row.append(num, body);
+        parent.appendChild(row);
+      }
+
+      // Uno spazio nota tra questo blocco e il successivo.
+      if (index < blocks.length - 1) {
+        parent.appendChild(gapElement(container, block.id));
+      }
+    });
+
+    parent.appendChild(gapElement(container, "end"));
+  }
+
+  function processButton(kind) {
+    const process = PROCESSI[kind];
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "process-btn";
+    button.textContent = "Apri il processo →";
+    button.setAttribute("aria-label", `Apri il processo ${process.name}`);
+    button.addEventListener("click", () => openProcess(kind));
+    return button;
+  }
+
+  function gapElement(container, anchor) {
+    const gap = document.createElement("div");
+    gap.className = "gap";
+
+    const list = getNotes(container, anchor);
+    if (list.length > 0) {
+      const notesEl = document.createElement("div");
+      notesEl.className = "gap-notes";
+      list.forEach((note) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "player-note";
+        card.textContent = note.text;
+        card.setAttribute("aria-label", `Modifica la nota: ${note.text}`);
+        card.addEventListener("click", () => openNotesSheet(container, anchor));
+        notesEl.appendChild(card);
+      });
+      gap.appendChild(notesEl);
+    }
+
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "gap-add";
+    add.innerHTML = '<span aria-hidden="true">＋</span>';
+    add.title = "Aggiungi nota";
+    add.setAttribute("aria-label", `Aggiungi una nota · ${gapLabel(container, anchor)}`);
+    add.addEventListener("click", () => openNotesSheet(container, anchor));
+    gap.appendChild(add);
+
+    return gap;
   }
 
   /* ---------- counters ---------- */
@@ -369,7 +693,7 @@
   /* ---------- phases ---------- */
 
   function buildStepper() {
-    PHASES.forEach((phase, index) => {
+    FASI.forEach((phase, index) => {
       const pill = document.createElement("button");
       pill.type = "button";
       pill.className = "step-pill";
@@ -397,7 +721,7 @@
       playSfx("round");
     } else {
       const target = state.fase + 1;
-      mutate(`Fase ${PHASES[target].name}`, () => {
+      mutate(`Fase ${FASI[target].name}`, () => {
         state.fase = target;
       });
     }
@@ -406,41 +730,19 @@
 
   /* ---------- notes ---------- */
 
-  function phaseNotes() {
-    return notes[String(state.fase)] || [];
+  function currentNotes() {
+    if (!noteScope) return [];
+    return getNotes(noteScope.container, noteScope.anchor);
   }
 
   function touchNotes() {
-    const key = String(state.fase);
+    if (!noteScope) return;
+    const key = noteKey(noteScope.container, noteScope.anchor);
     if (notes[key] && notes[key].length === 0) delete notes[key];
+    notesVersion += 1;
     save();
     render();
-  }
-
-  function renderNotesPreview() {
-    const list = phaseNotes();
-    el.phaseNotes.hidden = list.length === 0;
-    el.phaseNotesList.replaceChildren();
-
-    list.forEach((note) => {
-      const item = document.createElement("li");
-      item.textContent = note.text;
-      el.phaseNotesList.appendChild(item);
-    });
-
-    if (list.length > 0) {
-      el.notesBtnLabel.textContent = `✎ Note (${list.length})`;
-      el.notesBtn.setAttribute(
-        "aria-label",
-        `Modifica le note della fase ${PHASES[state.fase].name}`
-      );
-    } else {
-      el.notesBtnLabel.textContent = "＋ Aggiungi nota";
-      el.notesBtn.setAttribute(
-        "aria-label",
-        `Aggiungi una nota alla fase ${PHASES[state.fase].name}`
-      );
-    }
+    if (activeProcess) renderProcessList();
   }
 
   function noteButton(className, label, onClick) {
@@ -467,7 +769,7 @@
   }
 
   function renderNotesSheet() {
-    const list = phaseNotes();
+    const list = currentNotes();
     el.notesList.replaceChildren();
     el.notesEmpty.hidden = list.length > 0;
 
@@ -519,7 +821,8 @@
         actions.className = "note-actions";
         actions.append(
           noteButton("note-text-btn danger", "Elimina", () => {
-            const key = String(state.fase);
+            if (!noteScope) return;
+            const key = noteKey(noteScope.container, noteScope.anchor);
             notes[key] = (notes[key] || []).filter((item) => item.id !== note.id);
             deletingNoteId = null;
             touchNotes();
@@ -565,10 +868,12 @@
     el.notesAdd.disabled = el.notesInput.value.trim().length === 0;
   }
 
-  function openNotesSheet() {
+  function openNotesSheet(container, anchor) {
+    noteScope = { container, anchor };
     editingNoteId = null;
     deletingNoteId = null;
-    el.notesTitle.textContent = `Note · ${PHASES[state.fase].name}`;
+    el.notesTitle.textContent = `Note · ${containerTitle(container)}`;
+    el.notesSub.textContent = `${gapLabel(container, anchor)}. Restano anche con “Nuova partita”.`;
     el.notesInput.value = "";
     updateNotesComposer();
     renderNotesSheet();
@@ -582,13 +887,14 @@
   }
 
   function addNote() {
+    if (!noteScope) return;
     const text = el.notesInput.value.trim().slice(0, NOTE_LIMIT);
     if (!text) {
       el.notesInput.focus();
       return;
     }
 
-    const key = String(state.fase);
+    const key = noteKey(noteScope.container, noteScope.anchor);
     if (!notes[key]) notes[key] = [];
     notes[key].push({ id: makeId(), text });
 
@@ -603,23 +909,38 @@
   /* ---------- overlays ---------- */
 
   function openOverlay(overlay) {
-    overlayReturnFocus =
+    const active =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    activeOverlay = overlay;
+    overlayFocus.set(overlay, active);
+    if (!overlayStack.includes(overlay)) overlayStack.push(overlay);
     overlay.hidden = false;
     document.body.classList.add("modal-open");
   }
 
   function closeOverlay(overlay) {
     overlay.hidden = true;
-    if (activeOverlay === overlay) activeOverlay = null;
-    if (!document.querySelector(".overlay:not([hidden])")) {
+    const index = overlayStack.indexOf(overlay);
+    if (index !== -1) overlayStack.splice(index, 1);
+    if (overlayStack.length === 0) {
       document.body.classList.remove("modal-open");
-      if (overlayReturnFocus) {
-        overlayReturnFocus.focus();
-        overlayReturnFocus = null;
-      }
     }
+    const target = overlayFocus.get(overlay);
+    overlayFocus.delete(overlay);
+    if (target) target.focus();
+  }
+
+  function openProcess(kind) {
+    if (!PROCESSI[kind]) return;
+    activeProcess = kind;
+    el.processTitle.textContent = PROCESSI[kind].name;
+    renderProcessList();
+    openOverlay(el.processOverlay);
+  }
+
+  function closeProcess() {
+    activeProcess = null;
+    renderedProcessKey = null;
+    closeOverlay(el.processOverlay);
   }
 
   function openThreatDialog() {
@@ -893,8 +1214,8 @@
     if (button && !button.disabled) playSfx("tap");
   });
 
-  el.notesBtn.addEventListener("click", openNotesSheet);
   el.notesClose.addEventListener("click", closeNotesSheet);
+  el.processClose.addEventListener("click", closeProcess);
   el.notesForm.addEventListener("submit", (event) => {
     event.preventDefault();
     addNote();
@@ -926,33 +1247,44 @@
     el.threatInput.value = el.threatInput.value.replace(/\D+/g, "").slice(0, 3);
   });
 
-  [el.threatOverlay, el.resetOverlay, el.notesOverlay].forEach((overlay) => {
-    overlay.addEventListener("click", (event) => {
-      if (event.target !== overlay) return;
-      if (overlay === el.notesOverlay) {
-        closeNotesSheet();
-      } else {
-        closeOverlay(overlay);
-      }
-    });
-  });
+  [el.threatOverlay, el.resetOverlay, el.notesOverlay, el.processOverlay].forEach(
+    (overlay) => {
+      overlay.addEventListener("click", (event) => {
+        if (event.target !== overlay) return;
+        if (overlay === el.notesOverlay) {
+          closeNotesSheet();
+        } else if (overlay === el.processOverlay) {
+          closeProcess();
+        } else {
+          closeOverlay(overlay);
+        }
+      });
+    }
+  );
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
 
-    if (activeOverlay === el.notesOverlay && (editingNoteId || deletingNoteId)) {
-      editingNoteId = null;
-      deletingNoteId = null;
-      renderNotesSheet();
-      return;
-    }
+    const top = overlayStack[overlayStack.length - 1];
+    if (!top) return;
 
-    if (activeOverlay === el.notesOverlay) {
+    if (top === el.notesOverlay) {
+      if (editingNoteId || deletingNoteId) {
+        editingNoteId = null;
+        deletingNoteId = null;
+        renderNotesSheet();
+        return;
+      }
       closeNotesSheet();
       return;
     }
 
-    if (activeOverlay) closeOverlay(activeOverlay);
+    if (top === el.processOverlay) {
+      closeProcess();
+      return;
+    }
+
+    closeOverlay(top);
   });
 
   document.addEventListener("visibilitychange", () => {

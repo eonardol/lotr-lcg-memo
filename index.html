@@ -76,17 +76,10 @@
       <section class="phase" aria-label="Fase corrente">
         <div class="stepper" id="stepper" aria-label="Salta a una fase"></div>
 
-        <div class="phase-card">
+        <div class="phase-card" id="phaseCard">
           <p class="phase-eyebrow">Fase <span id="phaseNum">1</span> di 7</p>
           <h2 class="phase-name" id="phaseName" aria-live="polite">Risorsa</h2>
-          <p class="phase-desc" id="phaseDesc"></p>
-
-          <div class="phase-notes" id="phaseNotes" hidden>
-            <ul id="phaseNotesList"></ul>
-          </div>
-          <button class="notes-btn" id="notesBtn" type="button" aria-haspopup="dialog">
-            <span id="notesBtnLabel">Aggiungi nota</span>
-          </button>
+          <div class="step-list" id="phaseSteps"></div>
         </div>
       </section>
 
@@ -107,20 +100,31 @@
       </footer>
     </main>
 
+    <div class="overlay" id="processOverlay" hidden>
+      <div class="panel panel-process" role="dialog" aria-modal="true" aria-labelledby="processTitle">
+        <div class="panel-head">
+          <h2 id="processTitle">Processo</h2>
+          <button class="icon-btn" id="processClose" type="button" aria-label="Chiudi il processo">✕</button>
+        </div>
+        <p class="panel-sub">Risoluzione del processo di combattimento.</p>
+        <div class="step-list process-steps" id="processList"></div>
+      </div>
+    </div>
+
     <div class="overlay" id="notesOverlay" hidden>
       <div class="panel panel-notes" role="dialog" aria-modal="true" aria-labelledby="notesTitle">
         <div class="panel-head">
           <h2 id="notesTitle">Note</h2>
           <button class="icon-btn" id="notesClose" type="button" aria-label="Chiudi le note">✕</button>
         </div>
-        <p class="panel-sub">Promemoria della fase. Restano anche con “Nuova partita”.</p>
+        <p class="panel-sub" id="notesSub">Promemoria. Restano anche con “Nuova partita”.</p>
 
         <div class="notes-list" id="notesList"></div>
-        <p class="notes-empty" id="notesEmpty" hidden>Nessuna nota per questa fase.</p>
+        <p class="notes-empty" id="notesEmpty" hidden>Nessuna nota in questo punto.</p>
 
         <form class="notes-composer" id="notesForm">
           <textarea class="notes-input" id="notesInput" rows="2" maxlength="240"
-                    placeholder="Scrivi una nota per questa fase…" aria-label="Nuova nota"></textarea>
+                    placeholder="Scrivi una nota per questo punto…" aria-label="Nuova nota"></textarea>
           <div class="composer-row">
             <span class="char-count" id="notesCount">0/240</span>
             <button class="primary" id="notesAdd" type="submit" disabled>Aggiungi</button>
