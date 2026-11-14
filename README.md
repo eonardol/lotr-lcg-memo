@@ -1,14 +1,15 @@
 # Turno · LOTR LCG
 
-Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pensata per il telefono.
+Webapp leggera di supporto per **Il Signore degli Anelli LCG**, pensata per il telefono e per il tablet.
 
-- **Turno** e **Minaccia** con pulsanti `−` / `+` (pressione prolungata per scorrere veloce).
+- **Turno** e **Minaccia** (una per giocatore) con pulsanti `−` / `+` (pressione prolungata per scorrere veloce).
 - Tap sul numero della Minaccia per impostarla a un valore qualsiasi (default 30).
-- **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” il contatore pulsa brevemente e resta un suggerimento finché non imposti il valore (30 è solo un default).
+- **Multi-giocatore su tablet** (lato corto ≥ 600 px): fino a **4 indicatori Minaccia**, uno per giocatore, con nome personalizzabile (minimo 1, massimo 4). Sul telefono resta la card singola del giocatore 1.
+- **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” la card pulsa con un anello dorato, mostra il badge “!” e una pastiglia “Imposta la minaccia iniziale” finché non imposti il valore (30 è solo un default), per ciascun giocatore.
 - **Tracker delle 7 fasi** con tutti i passi numerati del regolamento (1.1, 1.2, …) e le **finestre di azione** evidenziate in rosso.
 - **Processi di combattimento in popup**: “Risolvere gli Attacchi dei Nemici” e “Risolvere gli Attacchi dei Giocatori”, apribili dai passi 6.4a e 6.8a.
 - **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino sullo stepper.
-- **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1`, di nuovo Risorsa).
+- **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1` a tutti i giocatori, di nuovo Risorsa).
 - **Minaccia in rosso da 50 in su**.
 - **Undo** a 30 passi: annulla tap sbagliati, cambi fase, avanzamenti e anche il reset.
 - **Ruota interfaccia** con il tasto `↻`: passa tra verticale e orizzontale, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
@@ -43,11 +44,22 @@ Tutto sta in `app.js`, tranne la versione:
 - `version.js`: `self.APP_VERSION` è l'unica fonte di verità per la versione mostrata e per la cache del service worker.
 - `FASI`: per ogni fase il nome e i blocchi, creati con `step("1.1", "…")` e `actionWindow("w-1")`.
 - `PROCESSI`: i due processi di combattimento mostrati nei popup (passi e finestre di azione).
-- `initialState()`: valori di partenza (`turno: 1`, `minaccia: 30`, `fase: 0`, `threatSetup: false`).
+- `initialState()`: stato di partenza (`turno: 1`, `fase: 0`, un solo giocatore con `threat: 30` e `setup: false`).
+- `PLAYER_LIMIT` (4) e `PLAYER_NAME_MAX` (18): numero massimo di giocatori e lunghezza del nome.
 - `HISTORY_LIMIT`: quanti passaggi di undo conservare.
 - `THREAT_ALERT`: soglia (50) oltre la quale la Minaccia diventa rossa.
+- `THREAT_MAX`: valore massimo impostabile per la Minaccia (999).
 - `NOTE_LIMIT`: lunghezza massima di una nota (240 caratteri).
 - `sfx`: file audio e volumi (`tap` 0.45, `round` 0.9). I file `tap.mp3` e `new-round.mp3` stanno nella radice del progetto.
+
+## Giocatori e modalità tablet
+
+- La modalità tablet si attiva da sola quando il **lato corto** dello schermo è almeno **600 px**: vale in verticale, in orizzontale e anche con la rotazione dell'interfaccia. Sotto quella soglia l'app resta identica alla versione per telefono.
+- Su tablet compaiono fino a 4 card Minaccia (più il Turno), disposte in una griglia che va a capo. Il tasto `＋` aggiunge un giocatore (disabilitato a 4), la `×` lo rimuove (solo con almeno 2).
+- Toccando il nome si apre il dialog per rinominare il giocatore; un nome vuoto torna a “Giocatore N”.
+- Sul telefono si vede solo il giocatore 1, con l'etichetta “Minaccia · Nome” se il nome è impostato. I nomi si gestiscono dal tablet.
+- I dati sono in `state.players`: `[{ id, name, threat, setup }]`. `setup` è il promemoria della Minaccia iniziale del singolo giocatore.
+- I salvataggi della 1.0.0 (campo `minaccia` singolo) vengono migrati automaticamente al primo giocatore al primo avvio.
 
 Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per contenitore e spazio: `"0::1.3"` = dopo il passo 1.3 della fase Risorsa, `"0::end"` = fine fase, `"proc:nemici::6.4.1"` = dopo 6.4.1 nel processo degli attacchi dei nemici. I salvataggi del vecchio formato (note per fase) vengono migrati automaticamente a fine fase. Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
 
@@ -63,13 +75,13 @@ qui sotto le regole per aggiornarlo insieme alla versione.
 La versione ha una sola fonte di verità: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.0.0";
+self.APP_VERSION = "1.1.0";
 ```
 
 Da lì:
 
-- `app.js` la mostra accanto al brand (`LOTR LCG v1.0.0`);
-- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.0.0`).
+- `app.js` la mostra accanto al brand (`LOTR LCG v1.1.0`);
+- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.1.0`).
 
 Non scrivere il numero di versione in altri file: si cambia solo `version.js` e
 tutto il resto si aggiorna di conseguenza.
@@ -79,7 +91,7 @@ tutto il resto si aggiorna di conseguenza.
 - **MAJOR** (`2.0.0`): modifiche che rompono i salvataggi esistenti (formato di
   `localStorage`, note, cronologia) o cambiano radicalmente il modo d'uso.
 - **MINOR** (`1.1.0`): nuove funzioni retrocompatibili.
-- **PATCH** (`1.0.1`): correzioni di bug e ritocchi, senza nuove funzioni.
+- **PATCH** (`1.1.1`): correzioni di bug e ritocchi, senza nuove funzioni.
 
 ### Quando aggiornare la versione
 
@@ -105,14 +117,14 @@ non fanno parte del precache.
 6. Crea il **tag annotato** sul commit che vuoi pubblicare, dal terminale:
 
    ```bash
-   git tag -a v1.0.1 -m "v1.0.1"
+   git tag -a v1.1.1 -m "v1.1.1"
    ```
 
 7. Pusha commit e tag:
 
    ```bash
    git push origin main
-   git push origin v1.0.1
+   git push origin v1.1.1
    # oppure, se il branch è tracciato:
    git push --follow-tags
    ```
@@ -129,7 +141,7 @@ speciale. In alternativa si può creare dalla UI:
 
 In tutti i casi il tag deve puntare **esattamente al commit che viene
 pubblicato**, e deve essere annotato (`-a`) così conserva autore e messaggio.
-Per controllare: `git show v1.0.1` e, nell'app, la scritta accanto al brand.
+Per controllare: `git show v1.1.1` e, nell'app, la scritta accanto al brand.
 
 ### Rollback
 
@@ -140,7 +152,7 @@ Per tornare indietro:
 
 1. ripristina il codice con `git revert` del commit problematico (o riparti dal
    tag precedente con un nuovo commit);
-2. bumpa una **PATCH** (es. `1.0.2`);
+2. bumpa una **PATCH** (es. `1.1.2`);
 3. aggiungi la voce in `CHANGELOG.md` e ripeti il ciclo di rilascio.
 
 ### Verifica rapida

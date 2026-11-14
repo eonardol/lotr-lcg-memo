@@ -53,7 +53,7 @@
       </header>
 
       <section class="counters" aria-label="Contatori">
-        <article class="counter">
+        <article class="counter counter-turno">
           <h2 class="counter-label" id="turnoLabel">Turno</h2>
           <div class="counter-row">
             <button class="step" id="turnoMinus" type="button" aria-label="Diminuisci turno">−</button>
@@ -62,16 +62,7 @@
           </div>
         </article>
 
-        <article class="counter" id="threatCounter">
-          <h2 class="counter-label" id="minacciaLabel">Minaccia</h2>
-          <div class="counter-row">
-            <button class="step" id="minacciaMinus" type="button" aria-label="Diminuisci minaccia">−</button>
-            <button class="counter-value value-btn" id="minacciaValue" type="button"
-                    aria-labelledby="minacciaLabel" aria-live="polite">30</button>
-            <button class="step" id="minacciaPlus" type="button" aria-label="Aumenta minaccia">+</button>
-          </div>
-          <span class="edit-hint" id="threatHint">tocca il numero per impostarlo</span>
-        </article>
+        <div class="players" id="players"></div>
       </section>
 
       <section class="phase" aria-label="Fase corrente">
@@ -137,7 +128,7 @@
     <div class="overlay" id="threatOverlay" hidden>
       <div class="panel" role="dialog" aria-modal="true" aria-labelledby="threatTitle">
         <h2 id="threatTitle">Imposta Minaccia</h2>
-        <p class="panel-sub">Valore tra 0 e 999.</p>
+        <p class="panel-sub" id="threatSub">Valore tra 0 e 999.</p>
         <input class="num-input" id="threatInput" type="text" inputmode="numeric"
                autocomplete="off" enterkeyhint="done" aria-label="Valore della minaccia" value="30">
         <div class="panel-actions">
@@ -147,10 +138,23 @@
       </div>
     </div>
 
+    <div class="overlay" id="nameOverlay" hidden>
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+        <h2 id="nameTitle">Nome giocatore</h2>
+        <p class="panel-sub">Facoltativo: se vuoto resta “Giocatore N”.</p>
+        <input class="text-input" id="nameInput" type="text" maxlength="18"
+               autocomplete="off" enterkeyhint="done" aria-label="Nome del giocatore">
+        <div class="panel-actions">
+          <button class="ghost" id="nameCancel" type="button">Annulla</button>
+          <button class="primary" id="nameConfirm" type="button">Salva</button>
+        </div>
+      </div>
+    </div>
+
     <div class="overlay" id="resetOverlay" hidden>
       <div class="panel" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
         <h2 id="resetTitle">Nuova partita</h2>
-        <p class="panel-sub">Azzera Turno, Minaccia e fase. Potrai sempre recuperare con ↶.</p>
+        <p class="panel-sub">Azzera Turno e fase e riporta a 30 la Minaccia di ogni giocatore. Nomi e giocatori restano. Potrai sempre recuperare con ↶.</p>
         <div class="panel-actions">
           <button class="ghost" id="resetCancel" type="button">Annulla</button>
           <button class="primary danger" id="resetConfirm" type="button">Azzera</button>
