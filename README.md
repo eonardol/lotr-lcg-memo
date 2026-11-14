@@ -4,6 +4,7 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pens
 
 - **Turno** e **Minaccia** con pulsanti `−` / `+` (pressione prolungata per scorrere veloce).
 - Tap sul numero della Minaccia per impostarla a un valore qualsiasi (default 30).
+- **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” il contatore pulsa brevemente e resta un suggerimento finché non imposti il valore (30 è solo un default).
 - **Tracker delle 7 fasi** con tutti i passi numerati del regolamento (1.1, 1.2, …) e le **finestre di azione** evidenziate in rosso.
 - **Processi di combattimento in popup**: “Risolvere gli Attacchi dei Nemici” e “Risolvere gli Attacchi dei Giocatori”, apribili dai passi 6.4a e 6.8a.
 - **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino sullo stepper.
@@ -15,7 +16,7 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG** (solitario), pens
 - **Blocco schermo on/off**: il badge in alto è un interruttore; la preferenza viene salvata.
 - **Suoni**: `tap.mp3` a ogni pulsante, `new-round.mp3` quando dal Ristoro parte il turno successivo.
 - Stato, fase, note e cronologia salvati in `localStorage`: riaprendo ritrovi la partita dov'era. Le note sopravvivono a “Nuova partita”.
-- PWA installabile (manifest + icone), nessuna dipendenza esterna, funziona sotto qualsiasi sottocartella.
+- **PWA installabile e offline first** (manifest + service worker): dopo il primo caricamento funziona anche senza rete. La versione è mostrata accanto al brand.
 
 ## Prova in locale
 
@@ -37,11 +38,12 @@ Tutti i percorsi sono relativi, quindi funziona sia come sito "root" sia come so
 
 ## Personalizzazione
 
-Tutto sta in `app.js`:
+Tutto sta in `app.js`, tranne la versione:
 
+- `version.js`: `self.APP_VERSION` è l'unica fonte di verità per la versione mostrata e per la cache del service worker.
 - `FASI`: per ogni fase il nome e i blocchi, creati con `step("1.1", "…")` e `actionWindow("w-1")`.
 - `PROCESSI`: i due processi di combattimento mostrati nei popup (passi e finestre di azione).
-- `initialState()`: valori di partenza (`turno: 1`, `minaccia: 30`, `fase: 0`).
+- `initialState()`: valori di partenza (`turno: 1`, `minaccia: 30`, `fase: 0`, `threatSetup: false`).
 - `HISTORY_LIMIT`: quanti passaggi di undo conservare.
 - `THREAT_ALERT`: soglia (50) oltre la quale la Minaccia diventa rossa.
 - `NOTE_LIMIT`: lunghezza massima di una nota (240 caratteri).
@@ -50,6 +52,31 @@ Tutto sta in `app.js`:
 Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per contenitore e spazio: `"0::1.3"` = dopo il passo 1.3 della fase Risorsa, `"0::end"` = fine fase, `"proc:nemici::6.4.1"` = dopo 6.4.1 nel processo degli attacchi dei nemici. I salvataggi del vecchio formato (note per fase) vengono migrati automaticamente a fine fase. Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
 
 Lo stile (tema scuro/oro) è in `styles.css`, variabili CSS in `:root`.
+
+## Versione e aggiornamenti
+
+La versione sta in `version.js` (`self.APP_VERSION`) ed è mostrata accanto al brand come `v1.0.0`. Il service worker usa la stessa stringa per il nome della cache (`lotr-lcg-v1.0.0`).
+
+Per pubblicare una modifica:
+
+1. aggiorna `version.js` (es. `"1.0.1"`);
+2. ricarica l'app: il nuovo service worker installa la nuova cache e attiva subito la versione (`skipWaiting` + `claim`).
+
+Senza il bump il browser può continuare a servire i file dalla cache precedente.
+
+## Installazione e uso offline
+
+- Servi l'app via **HTTPS** (GitHub Pages va bene) o `localhost`: il service worker non funziona da `file://`.
+- Al primo caricamento vengono messi in cache HTML, CSS, JS, icone e audio. Da quel momento l'app si apre e funziona anche in modalità aereo.
+- Android/Chrome: menu → “Installa app” (o il prompt automatico). iOS/Safari: Condividi → “Aggiungi alla schermata Home”.
+- Aggiornamenti: bump di `version.js`; l'app installata si aggiorna automaticamente alla riapertura.
+- Se modifichi i file in locale e non vedi le modifiche, bumpa la versione o svuota i dati del sito.
+
+## Note su popup e tastiera
+
+- I popup si aprono **in alto**, non più centrati.
+- L'altezza dell'overlay segue l'area visibile (`visualViewport`): quando si apre la tastiera, il campo note e il pulsante “Aggiungi” restano sopra la tastiera.
+- La stessa logica funziona con l'interfaccia ruotata a 90° (assi scambiati).
 
 ## Note sul blocco schermo
 
@@ -81,6 +108,8 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 index.html
 styles.css
 app.js
+version.js
+sw.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
 tap.mp3  new-round.mp3

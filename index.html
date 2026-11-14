@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#0d0b08">
   <meta name="color-scheme" content="dark">
 
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Turno LCG">
@@ -21,7 +22,7 @@
   <div id="rotator" data-rotation="0">
     <main class="app">
       <header class="top">
-        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> LOTR LCG</span>
+        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> LOTR LCG<span class="brand-version" id="appVersion"></span></span>
 
         <div class="top-actions">
           <button class="icon-action" id="rotateBtn" type="button"
@@ -61,7 +62,7 @@
           </div>
         </article>
 
-        <article class="counter">
+        <article class="counter" id="threatCounter">
           <h2 class="counter-label" id="minacciaLabel">Minaccia</h2>
           <div class="counter-row">
             <button class="step" id="minacciaMinus" type="button" aria-label="Diminuisci minaccia">−</button>
@@ -69,7 +70,7 @@
                     aria-labelledby="minacciaLabel" aria-live="polite">30</button>
             <button class="step" id="minacciaPlus" type="button" aria-label="Aumenta minaccia">+</button>
           </div>
-          <span class="edit-hint">tocca il numero per impostarlo</span>
+          <span class="edit-hint" id="threatHint">tocca il numero per impostarlo</span>
         </article>
       </section>
 
@@ -158,6 +159,7 @@
     </div>
   </div>
 
+  <script src="./version.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
