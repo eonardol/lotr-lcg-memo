@@ -106,7 +106,6 @@ self.I18N = {
       addPlayerAria: "Aggiungi un giocatore",
       removePlayerAria: "Rimuovi {name}",
       renamePlayerAria: "Rinomina {name}",
-      threatOfAria: "Minaccia di {name}",
       threatValueAria:
         "Minaccia di {name}: {value}{alert}{setup}. Tocca per impostare un valore",
       alertSuffix: ", livello di allarme",
@@ -310,7 +309,6 @@ self.I18N = {
       addPlayerAria: "Add a player",
       removePlayerAria: "Remove {name}",
       renamePlayerAria: "Rename {name}",
-      threatOfAria: "Threat of {name}",
       threatValueAria:
         "Threat of {name}: {value}{alert}{setup}. Tap to set a value",
       alertSuffix: ", alert level",

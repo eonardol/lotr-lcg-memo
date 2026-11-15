@@ -397,6 +397,7 @@
     tap: makeSound("./tap.mp3", 0.45),
     undo: makeSound("./undo.mp3", 0.7),
     round: makeSound("./new-round.mp3", 0.9),
+    over: makeSound("./game-over.mp3", 0.9),
   };
 
   function playSfx(name) {
@@ -777,6 +778,7 @@
     el.turnoMinus.disabled = state.turno <= 1;
 
     renderPlayers();
+    checkThreatAlert();
 
     if (turnoChanged && lastRendered) pop(el.turnoValue);
 
@@ -848,6 +850,26 @@
     return tabletMode;
   }
 
+  let threatAlertMuted = false;
+
+  // Il suono di game-over parte una sola volta, quando un giocatore *entra*
+  // nella zona di allerta (Minaccia ≥ 50). Scendere e risalire lo fa ripartire;
+  // restare sopra no. La mappa serve anche a silenziare il primo render, così
+  // riaprendo l'app con la Minaccia già alta non suona nulla.
+  function checkThreatAlert() {
+    let crossed = false;
+    state.players.forEach((player) => {
+      const previous = playerLastThreat.get(player.id);
+      if (previous !== undefined) {
+        if (previous < THREAT_ALERT && player.threat >= THREAT_ALERT) {
+          crossed = true;
+        }
+      }
+      playerLastThreat.set(player.id, player.threat);
+    });
+    if (crossed && !threatAlertMuted) playSfx("over");
+  }
+
   function renderPlayers() {
     const tablet = isTablet();
     const visible = tablet ? state.players : state.players.slice(0, 1);
@@ -864,9 +886,14 @@
       playerLastThreat.clear();
       el.players.replaceChildren();
 
+      // La mappa copre tutti i giocatori, non solo le card visibili: anche sul
+      // telefono la Minaccia degli altri può salire (Ristoro, impresa).
+      state.players.forEach((player) => {
+        playerLastThreat.set(player.id, player.threat);
+      });
+
       visible.forEach((player) => {
         el.players.appendChild(buildPlayerCard(player));
-        playerLastThreat.set(player.id, player.threat);
       });
 
       if (tablet && state.players.length < PLAYER_LIMIT) {
@@ -967,19 +994,17 @@
       if (previousThreat !== undefined && previousThreat !== player.threat) {
         pop(refs.value);
       }
-      playerLastThreat.set(player.id, player.threat);
 
       refs.name.textContent = tablet
         ? label
         : player.name.trim()
           ? t("ui.threatNamed", { name: label })
           : t("ui.threat");
-      refs.name.disabled = !tablet;
+      // Il nome è modificabile anche sul telefono: il tasto apre il dialogo.
+      refs.name.title = t("ui.renamePlayerAria", { name: label });
       refs.name.setAttribute(
         "aria-label",
-        tablet
-          ? t("ui.renamePlayerAria", { name: label })
-          : t("ui.threatOfAria", { name: label })
+        t("ui.renamePlayerAria", { name: label })
       );
 
       refs.remove.hidden = !canRemove;
@@ -2278,7 +2303,13 @@
     state = sanitize(entry.state);
     save();
     clearThreatFlash();
-    render();
+    // Tornare indietro non è un "game over": il suono resta zitto.
+    threatAlertMuted = true;
+    try {
+      render();
+    } finally {
+      threatAlertMuted = false;
+    }
     refreshQuestIfOpen();
     // Se l'undo fa ricomparire il promemoria, rilancialo una volta.
     if (!hadPending && state.players.some((player) => !player.setup)) {

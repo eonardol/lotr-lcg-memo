@@ -32,6 +32,7 @@ const ASSETS = [
   "./tap.mp3",
   "./undo.mp3",
   "./new-round.mp3",
+  "./game-over.mp3",
 ];
 
 self.addEventListener("install", (event) => {
