@@ -69,6 +69,7 @@
         step("6.4a", { process: "nemici" }),
         step("6.5"),
         step("6.6"),
+        actionWindow("w-2"),
         step("6.7"),
         step("6.8a", { process: "giocatori" }),
         step("6.9"),
@@ -1741,7 +1742,52 @@
   function stepQuest(field, delta) {
     if (state.quest.applied) return;
     setQuestValue(field, state.quest[field] + delta, true);
-    vibrate(4);
+  }
+
+  // Pressione prolungata sui `−`/`+` dell'impresa: un passo subito, poi
+  // ripetizione veloce dopo 380 ms, con gli stessi tempi dei contatori.
+  function bindQuestStepper(button, field, delta) {
+    let timer = null;
+    let interval = null;
+
+    const apply = () => stepQuest(field, delta);
+
+    const stop = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+      document.removeEventListener("pointerup", stop);
+      document.removeEventListener("pointercancel", stop);
+    };
+
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      event.preventDefault();
+      stop();
+      apply();
+      vibrate(4);
+      timer = setTimeout(() => {
+        interval = setInterval(apply, 80);
+      }, 380);
+      document.addEventListener("pointerup", stop);
+      document.addEventListener("pointercancel", stop);
+    });
+
+    button.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+        event.preventDefault();
+        apply();
+        vibrate(4);
+      }
+    });
+
+    button.addEventListener("contextmenu", (event) => event.preventDefault());
+    button.addEventListener("click", (event) => event.preventDefault());
   }
 
   function clearThreatFlash() {
@@ -2264,10 +2310,10 @@
   el.questClose.addEventListener("click", () => closeOverlay(el.questOverlay));
   el.questDone.addEventListener("click", () => closeOverlay(el.questOverlay));
   el.questRaise.addEventListener("click", applyQuestThreat);
-  el.questWillpowerMinus.addEventListener("click", () => stepQuest("willpower", -1));
-  el.questWillpowerPlus.addEventListener("click", () => stepQuest("willpower", 1));
-  el.questThreatMinus.addEventListener("click", () => stepQuest("threat", -1));
-  el.questThreatPlus.addEventListener("click", () => stepQuest("threat", 1));
+  bindQuestStepper(el.questWillpowerMinus, "willpower", -1);
+  bindQuestStepper(el.questWillpowerPlus, "willpower", 1);
+  bindQuestStepper(el.questThreatMinus, "threat", -1);
+  bindQuestStepper(el.questThreatPlus, "threat", 1);
 
   function bindQuestInput(input, field, allowNegative, maxLength) {
     input.addEventListener("input", () => {

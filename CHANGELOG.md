@@ -7,6 +7,32 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-11-15
+
+### Added
+
+- **Action window between 6.6 and 6.7** in the combat phase, matching the rules
+  sequence. Like the other gaps it can host notes and the bookmark.
+- **Long-press on the quest resolution `−`/`+` buttons**: one step on press,
+  then fast repetition after 380 ms (same timing as Turn and Threat). The
+  limits (Willpower −999…999, Threat 0…999) and the lock after applying the
+  threat increase still apply.
+
+### Changed
+
+- **Rotation icon**: it is now a screen that shows the orientation the button
+  switches to — landscape in portrait, portrait when the UI is rotated — so it
+  no longer looks like “New game”. The old `reload.svg` is no longer used and
+  was removed.
+
+### Fixed
+
+- **Pop-ups no longer spill outside their panel in landscape or with the UI
+  rotated** (for example the **Close** button of the quest progress, which ended
+  up below the rounded border or off-screen). Panels keep their content height
+  and compact on short screens, so the whole dialog stays inside the border; the
+  overlay scrolls only when the content truly does not fit.
+
 ## [1.3.1] - 2026-11-15
 
 ### Added
@@ -188,7 +214,8 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.2
 [1.3.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.1
 [1.3.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.0
 [1.2.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.2.0
