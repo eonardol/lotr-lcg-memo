@@ -11,6 +11,8 @@
   --muted: #9c8f78;
   --danger: #c05248;
   --radius: 18px;
+  --note-dot: #a78bfa;
+  --bookmark-dot: #f2c94c;
 }
 
 * {
@@ -102,6 +104,68 @@ body.modal-open #rotator {
   padding: calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 10px);
 }
 
+/* ---------- icone (Radix, file SVG in root) ---------- */
+
+.icon-mask {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon);
+  mask-image: var(--icon);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.icon-bookmark {
+  --icon: url("./bookmark.svg");
+}
+
+.step-bookmark[aria-pressed="true"] .icon-bookmark {
+  --icon: url("./bookmark-filled.svg");
+}
+
+.icon-pencil {
+  --icon: url("./pencil-1.svg");
+}
+
+.icon-trash {
+  --icon: url("./trash.svg");
+}
+
+.icon-rotate {
+  --icon: url("./reload.svg");
+}
+
+.icon-undo {
+  --icon: url("./reset.svg");
+}
+
+.icon-restart {
+  --icon: url("./update.svg");
+}
+
+.icon-close {
+  --icon: url("./cross-2.svg");
+}
+
+.icon-plus {
+  --icon: url("./plus.svg");
+}
+
+.icon-fullscreen {
+  --icon: url("./enter-full-screen.svg");
+}
+
+.icon-action[aria-pressed="true"] .icon-fullscreen {
+  --icon: url("./exit-full-screen.svg");
+}
+
 /* ---------- header ---------- */
 
 .top {
@@ -139,7 +203,7 @@ body.modal-open #rotator {
   appearance: none;
 }
 
-.icon-action svg {
+.icon-action .icon-mask {
   width: 17px;
   height: 17px;
   display: block;
@@ -158,6 +222,13 @@ body.modal-open #rotator {
   color: var(--gold-bright);
   border-color: var(--gold-deep);
   background: rgba(201, 162, 39, 0.12);
+}
+
+.lang-toggle {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .brand {
@@ -261,6 +332,42 @@ body.modal-open #rotator {
   display: contents;
 }
 
+.tablet .step-pill {
+  flex-direction: column;
+  gap: 0;
+  height: 48px;
+  padding: 3px 2px 4px;
+}
+
+.tablet .step-pill-num {
+  font-size: 0.98rem;
+  line-height: 1.1;
+}
+
+.tablet .step-pill-name {
+  display: block;
+  max-width: 100%;
+  font-size: 0.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tablet .step-bookmark {
+  width: 36px;
+  height: 36px;
+}
+
+.tablet .step-bookmark .icon-mask {
+  width: 16px;
+  height: 16px;
+}
+
 .tablet .counters {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
@@ -361,6 +468,11 @@ body.modal-open #rotator {
   display: none;
 }
 
+.player-remove .icon-mask {
+  width: 11px;
+  height: 11px;
+}
+
 .player-remove:active {
   color: #ff8b7e;
   background: #221a13;
@@ -383,8 +495,8 @@ body.modal-open #rotator {
 }
 
 .counter-add .add-mark {
-  font-size: 1.35rem;
-  line-height: 1;
+  width: 22px;
+  height: 22px;
   color: var(--gold);
 }
 
@@ -634,6 +746,10 @@ body.modal-open #rotator {
   flex: 1 1 0;
   min-width: 0;
   height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 0;
   font-family: inherit;
   font-size: 0.95rem;
@@ -645,6 +761,15 @@ body.modal-open #rotator {
   border-radius: 12px;
   cursor: pointer;
   transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.step-pill-num {
+  line-height: 1;
+}
+
+/* Su telefono il nome della fase resta nascosto: c'è solo il numero. */
+.step-pill-name {
+  display: none;
 }
 
 .step-pill:focus-visible {
@@ -664,22 +789,29 @@ body.modal-open #rotator {
   box-shadow: 0 0 18px rgba(201, 162, 39, 0.22);
 }
 
-.step-pill.has-notes::after {
+/* Note in viola (in alto a destra), segnalibro in giallo (in basso a
+   destra): restano distinguibili anche sulla pillola corrente dorata. */
+.step-pill.has-notes::before,
+.step-pill.has-bookmark::after {
   content: "";
   position: absolute;
-  top: 5px;
   right: 6px;
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px rgba(232, 198, 90, 0.6);
+  box-shadow: 0 0 6px currentColor, 0 0 0 1px rgba(13, 11, 8, 0.6);
 }
 
-.step-pill.current.has-notes::after {
-  background: #1a1408;
-  box-shadow: none;
-  opacity: 0.7;
+.step-pill.has-notes::before {
+  top: 5px;
+  color: var(--note-dot);
+  background: var(--note-dot);
+}
+
+.step-pill.has-bookmark::after {
+  bottom: 5px;
+  color: var(--bookmark-dot);
+  background: var(--bookmark-dot);
 }
 
 .phase-card {
@@ -729,6 +861,60 @@ body.modal-open #rotator {
   align-items: flex-start;
   gap: 8px;
   padding: 4px 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease;
+}
+
+.step-block:active {
+  background: rgba(201, 162, 39, 0.08);
+}
+
+/* Riga con il segnalibro: barra dorata e sfondo tenue. */
+.step-block.bookmarked {
+  background: linear-gradient(90deg, rgba(242, 201, 76, 0.1), transparent 72%);
+  box-shadow: inset 2px 0 0 var(--bookmark-dot);
+  border-radius: 0 8px 8px 0;
+}
+
+.step-bookmark {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  margin: -3px -2px -3px 0;
+  padding: 0;
+  color: #8d7f63;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: color 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+}
+
+.step-bookmark .icon-mask {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.step-bookmark:active {
+  background: rgba(201, 162, 39, 0.14);
+}
+
+.step-bookmark:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.step-bookmark[aria-pressed="true"] {
+  color: var(--bookmark-dot);
+  opacity: 1;
+  background: rgba(242, 201, 76, 0.12);
 }
 
 .step-num {
@@ -855,6 +1041,11 @@ body.modal-open #rotator {
   cursor: pointer;
 }
 
+.gap-add .icon-mask {
+  width: 13px;
+  height: 13px;
+}
+
 .gap-add:active {
   color: var(--gold-bright);
   border-color: var(--gold-deep);
@@ -939,6 +1130,11 @@ body.modal-open #rotator {
   border-radius: 12px;
   cursor: pointer;
   overflow: hidden;
+}
+
+.bottom button .icon-mask {
+  width: 14px;
+  height: 14px;
 }
 
 .bottom button:active {
@@ -1166,6 +1362,11 @@ body.modal-open #rotator {
   cursor: pointer;
 }
 
+.icon-btn .icon-mask {
+  width: 15px;
+  height: 15px;
+}
+
 .icon-btn:active {
   background: #1c1710;
 }
@@ -1255,7 +1456,7 @@ body.modal-open #rotator {
   cursor: pointer;
 }
 
-.note-icon svg {
+.note-icon .icon-mask {
   width: 16px;
   height: 16px;
   display: block;
@@ -1403,7 +1604,7 @@ body.modal-open #rotator {
   height: 29px;
 }
 
-.narrow .icon-action svg {
+.narrow .icon-action .icon-mask {
   width: 15px;
   height: 15px;
 }
@@ -1458,6 +1659,14 @@ body.modal-open #rotator {
 
 .compact-height .step-pill {
   height: 34px;
+}
+
+.tablet.compact-height .step-pill {
+  height: 40px;
+}
+
+.tablet.compact-height .step-pill-name {
+  font-size: 0.48rem;
 }
 
 .compact-height .phase-name {
@@ -1534,6 +1743,21 @@ body.modal-open #rotator {
 .very-short .step-pill {
   height: 30px;
   font-size: 0.82rem;
+}
+
+.very-short .step-pill-name {
+  display: none;
+}
+
+.very-short .step-bookmark {
+  width: 26px;
+  height: 26px;
+  margin: -2px -2px -2px 0;
+}
+
+.very-short .step-bookmark .icon-mask {
+  width: 13px;
+  height: 13px;
 }
 
 .very-short .phase {

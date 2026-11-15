@@ -4,112 +4,86 @@
   const APP_VERSION =
     typeof self.APP_VERSION === "string" && self.APP_VERSION ? self.APP_VERSION : "dev";
 
-  const step = (id, text, options) => ({ id, kind: "step", text, ...options });
+  const step = (id, options) => ({ id, kind: "step", ...options });
   const actionWindow = (id) => ({ id, kind: "window" });
 
-  // Passi esatti del regolamento. `id` è anche l'ancora delle note:
-  // una nota agganciata a "1.3" compare tra 1.3 e il blocco successivo.
+  // Passi esatti del regolamento. `id` è anche l'ancora delle note e dei
+  // segnalibri: una nota agganciata a "1.3" compare tra 1.3 e il blocco
+  // successivo. I testi stanno in i18n.js, indicizzati per id.
   // "end" è la posizione finale della fase/processo.
   const FASI = [
     {
-      name: "Risorsa",
       blocks: [
-        step("1.1", "Inizio della Fase di Risorsa"),
-        step("1.2", "Riscuotere risorse"),
-        step("1.3", "Pescare carte"),
+        step("1.1"),
+        step("1.2"),
+        step("1.3"),
         actionWindow("w-1"),
-        step("1.4", "Fine della Fase di Risorsa"),
+        step("1.4"),
       ],
     },
     {
-      name: "Pianificazione",
       blocks: [
-        step("2.1", "Inizio della Fase di Pianificazione"),
-        step(
-          "2.2",
-          "Finestra di azione speciale (il giocatore attivo può giocare anche alleati e aggiunte)"
-        ),
-        step(
-          "2.3",
-          "Il giocatore successivo (in ordine di gioco) diventa il giocatore attivo (tornare a 2.2 o proseguire con 2.4)"
-        ),
-        step("2.4", "Fine della Fase di Pianificazione"),
+        step("2.1"),
+        step("2.2"),
+        step("2.3"),
+        step("2.4"),
       ],
     },
     {
-      name: "Impresa",
       blocks: [
-        step("3.1", "Inizio della Fase di Impresa"),
+        step("3.1"),
         actionWindow("w-1"),
-        step("3.2", "Destinare i personaggi"),
+        step("3.2"),
         actionWindow("w-2"),
-        step("3.3", "Allestimento"),
+        step("3.3"),
         actionWindow("w-3"),
-        step("3.4", "Risoluzione dell'impresa"),
+        step("3.4"),
         actionWindow("w-4"),
-        step("3.5", "Fine della Fase di Impresa"),
+        step("3.5"),
       ],
     },
     {
-      name: "Viaggio",
       blocks: [
-        step("4.1", "Inizio della Fase di Viaggio"),
-        step("4.2", "Opportunità di viaggio"),
+        step("4.1"),
+        step("4.2"),
         actionWindow("w-1"),
-        step("4.3", "Fine della Fase di Viaggio"),
+        step("4.3"),
       ],
     },
     {
-      name: "Incontro",
       blocks: [
-        step("5.1", "Inizio della Fase di Incontro"),
-        step("5.2", "Impegno facoltativo"),
+        step("5.1"),
+        step("5.2"),
         actionWindow("w-1"),
-        step("5.3", "Verifiche di impegno"),
+        step("5.3"),
         actionWindow("w-2"),
-        step("5.4", "Fine della Fase di Incontro"),
+        step("5.4"),
       ],
     },
     {
-      name: "Combattimento",
       blocks: [
-        step("6.1", "Inizio della Fase di Combattimento"),
-        step("6.2", "Distribuire le carte ombra"),
+        step("6.1"),
+        step("6.2"),
         actionWindow("w-1"),
-        step("6.3", "Inizio del processo “Risolvere gli Attacchi dei Nemici”"),
-        step(
-          "6.4a",
-          "Il giocatore attivo risolve l'attacco del nemico successivo. Ripetere questo passo finché tutti i nemici validi di quel giocatore non hanno attaccato",
-          { process: "nemici" }
-        ),
-        step(
-          "6.5",
-          "Il giocatore successivo diventa il giocatore attivo (tornare a 6.4a). Se tutti i giocatori hanno risolto gli attacchi dei nemici, proseguire con 6.6"
-        ),
-        step("6.6", "Fine del processo “Risolvere gli Attacchi dei Nemici”"),
-        step("6.7", "Inizio del processo “Risolvere gli Attacchi dei Giocatori”"),
-        step(
-          "6.8a",
-          "Il giocatore attivo dichiara l'attacco successivo. Ripetere questo passo finché tutti gli attacchi validi di quel giocatore non sono stati effettuati",
-          { process: "giocatori" }
-        ),
-        step(
-          "6.9",
-          "Il giocatore successivo diventa il giocatore attivo (tornare a 6.8a). Se tutti i giocatori hanno risolto gli attacchi dei giocatori, proseguire con 6.10"
-        ),
-        step("6.10", "Fine del processo “Risolvere gli Attacchi dei Giocatori”"),
-        step("6.11", "Fine della Fase di Combattimento. Scartare tutte le carte ombra"),
+        step("6.3"),
+        step("6.4a", { process: "nemici" }),
+        step("6.5"),
+        step("6.6"),
+        step("6.7"),
+        step("6.8a", { process: "giocatori" }),
+        step("6.9"),
+        step("6.10"),
+        step("6.11"),
       ],
     },
     {
-      name: "Ristoro",
       blocks: [
-        step("7.1", "Inizio della Fase di Ristoro"),
-        step("7.2", "Ripristinare le carte"),
-        step("7.3", "Aumentare la Minaccia (viene fatto in automatico da questa app)"),
-        step("7.4", "Passare il segnalino primo giocatore"),
+        step("7.1"),
+        step("7.2"),
+        step("7.3"),
+        step("7.4"),
         actionWindow("w-1"),
-        step("7.5", "Fine della Fase di Ristoro"),
+        step("7.5"),
       ],
     },
   ];
@@ -117,42 +91,190 @@
   // Processi di combattimento mostrati nei popup, a partire dai passi 6.3 e 6.7.
   const PROCESSI = {
     nemici: {
-      name: "Risolvere gli Attacchi dei Nemici",
       blocks: [
-        step("6.4b", "Lancio dell'attacco del nemico (il giocatore attivo sceglie il nemico)"),
+        step("6.4b"),
         actionWindow("w-1"),
-        step("6.4.1", "Dichiarare il difensore"),
+        step("6.4.1"),
         actionWindow("w-2"),
-        step("6.4.2", "Risolvere l'effetto di ombra"),
+        step("6.4.2"),
         actionWindow("w-3"),
-        step("6.4.3", "Determinare i danni da combattimento"),
+        step("6.4.3"),
         actionWindow("w-4"),
-        step(
-          "6.4.4",
-          "Fine dell'attacco del nemico. Se il giocatore attivo deve risolvere altri attacchi dei nemici, ritornare a 6.4a. Altrimenti, proseguire con 6.5"
-        ),
+        step("6.4.4"),
       ],
     },
     giocatori: {
-      name: "Risolvere gli Attacchi dei Giocatori",
       blocks: [
-        step(
-          "6.8b",
-          "Lancio dell'attacco del giocatore (il giocatore attivo dichiara bersaglio dell'attacco e attaccante/i)"
-        ),
-        step("6.8.1", "Opzione Distanza"),
+        step("6.8b"),
+        step("6.8.1"),
         actionWindow("w-1"),
-        step("6.8.2", "Determinare la Forza di Attacco"),
+        step("6.8.2"),
         actionWindow("w-2"),
-        step("6.8.3", "Determinare i danni da combattimento"),
+        step("6.8.3"),
         actionWindow("w-3"),
-        step(
-          "6.8.4",
-          "Fine dell'attacco del giocatore. Se il giocatore attivo deve risolvere altri attacchi del giocatore, ritornare a 6.8a. Altrimenti, proseguire con 6.9"
-        ),
+        step("6.8.4"),
       ],
     },
   };
+
+  /* ---------- i18n ---------- */
+
+  const I18N = self.I18N || {};
+  const LANG_NAMES = self.I18N_LANG_NAMES || {};
+  const LANGS = Object.keys(I18N);
+  const DEFAULT_LANG = LANGS.includes("it") ? "it" : LANGS[0] || "it";
+  let lang = "";
+
+  function dict() {
+    return I18N[lang] || I18N[DEFAULT_LANG] || {};
+  }
+
+  function t(key, vars) {
+    const value = key
+      .split(".")
+      .reduce((node, part) => (node ? node[part] : undefined), dict());
+    if (typeof value !== "string") return key;
+    if (!vars) return value;
+    return value.replace(/\{(\w+)\}/g, (match, name) =>
+      vars[name] === undefined ? match : String(vars[name])
+    );
+  }
+
+  function phaseName(index) {
+    const names = dict().phases;
+    return Array.isArray(names) && typeof names[index] === "string"
+      ? names[index]
+      : `Fase ${index + 1}`;
+  }
+
+  function processName(kind) {
+    const names = dict().processes;
+    return names && typeof names[kind] === "string" ? names[kind] : kind;
+  }
+
+  function stepText(block) {
+    const steps = dict().steps;
+    return steps && typeof steps[block.id] === "string" ? steps[block.id] : block.id;
+  }
+
+  // Le etichette della cronologia sono descrittori { key, vars } per poterle
+  // ritradurre quando si cambia lingua; le stringhe restano supportate per i
+  // salvataggi precedenti.
+  function actionLabel(key, vars) {
+    return { key, vars: vars || null };
+  }
+
+  function labelText(value) {
+    if (typeof value === "string") return value;
+    if (value && typeof value.key === "string") {
+      return t(value.key, value.vars || undefined);
+    }
+    return "";
+  }
+
+  function detectLanguage() {
+    try {
+      const param = new URLSearchParams(window.location.search).get("lang");
+      if (param && I18N[param]) return param;
+    } catch (error) {
+      /* URL non leggibile: si prosegue con le altre fonti */
+    }
+    if (I18N[lang]) return lang;
+    const candidates = (
+      navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || ""]
+    ).map((code) => String(code).slice(0, 2).toLowerCase());
+    return candidates.find((code) => I18N[code]) || DEFAULT_LANG;
+  }
+
+  function applyStaticTexts() {
+    document.querySelectorAll("[data-i18n]").forEach((node) => {
+      node.textContent = t(node.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach((node) => {
+      node.setAttribute("aria-label", t(node.dataset.i18nAria));
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+      node.title = t(node.dataset.i18nTitle);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+      node.placeholder = t(node.dataset.i18nPlaceholder);
+    });
+    document.title = t("ui.appTitle");
+    const description = document.querySelector('meta[name="description"]');
+    if (description) description.setAttribute("content", t("ui.appDescription"));
+    document.documentElement.lang = lang;
+  }
+
+  function updateLanguageButton() {
+    if (!el.langBtn) return;
+    const next = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length] || DEFAULT_LANG;
+    const names = LANG_NAMES[lang] || {};
+    const currentName = names[lang] || lang;
+    const nextName = names[next] || next;
+    el.langBtn.textContent = String(lang).toUpperCase();
+    el.langBtn.setAttribute(
+      "aria-label",
+      t("ui.languageAria", { current: currentName, next: nextName })
+    );
+    el.langBtn.title = t("ui.languageTitle", { next: nextName });
+  }
+
+  function refreshOpenDialogs() {
+    if (noteScope && !el.notesOverlay.hidden) {
+      el.notesTitle.textContent = t("ui.notesTitle", {
+        container: containerTitle(noteScope.container),
+      });
+      el.notesSub.textContent = t("ui.notesSub", {
+        gap: gapLabel(noteScope.container, noteScope.anchor),
+      });
+      renderNotesSheet();
+    }
+    if (activeProcess) {
+      el.processTitle.textContent = processName(activeProcess);
+      renderProcessList();
+    }
+    if (threatTargetId) {
+      const index = playerIndex(threatTargetId);
+      if (index !== -1) {
+        el.threatSub.textContent = t("ui.threatSubNamed", {
+          name: playerName(state.players[index], index),
+        });
+      }
+    }
+    if (nameTargetId) {
+      const index = playerIndex(nameTargetId);
+      if (index !== -1) {
+        const name = playerName(state.players[index], index);
+        el.nameTitle.textContent = t("ui.nameDialogTitle", { name });
+        el.nameInput.setAttribute("aria-label", t("ui.nameInputAria", { name }));
+      }
+    }
+  }
+
+  function setLanguage(next) {
+    if (!I18N[next] || next === lang) return;
+    lang = next;
+    renderedPhaseKey = null;
+    renderedProcessKey = null;
+    renderedPlayersKey = null;
+    applyStaticTexts();
+    updateLanguageButton();
+    updateRotateLabel();
+    setWakeBadge(wakeMode);
+    render();
+    if (activeProcess) renderProcessList();
+    refreshOpenDialogs();
+    save();
+  }
+
+  function cycleLanguage() {
+    if (LANGS.length < 2) return;
+    const index = LANGS.indexOf(lang);
+    setLanguage(LANGS[(index + 1) % LANGS.length]);
+    vibrate(6);
+  }
 
   const STORAGE_KEY = "lotr-lcg-memo/v1";
   const HISTORY_LIMIT = 30;
@@ -160,7 +282,8 @@
   const NOTES_PER_GAP = 30;
   const THREAT_ALERT = 50;
   const LAST_PHASE = FASI.length - 1;
-  // Fase di Combattimento: i suoi processi condividono il pallino delle note.
+  // Fase di Combattimento: i suoi processi condividono i pallini di note e
+  // segnalibro della fase 6.
   const PROCESSI_FASE = { 5: ["nemici", "giocatori"] };
 
   const $ = (id) => document.getElementById(id);
@@ -168,6 +291,7 @@
   const el = {
     rotator: $("rotator"),
     rotateBtn: $("rotateBtn"),
+    langBtn: $("langBtn"),
     fullscreenBtn: $("fullscreenBtn"),
     wakeBadge: $("wakeBadge"),
     wakeText: $("wakeText"),
@@ -177,7 +301,7 @@
     turnoMinus: $("turnoMinus"),
     turnoPlus: $("turnoPlus"),
     stepper: $("stepper"),
-    phaseNum: $("phaseNum"),
+    phaseEyebrow: $("phaseEyebrow"),
     phaseName: $("phaseName"),
     phaseCard: $("phaseCard"),
     phaseSteps: $("phaseSteps"),
@@ -231,6 +355,7 @@
     turno: 1,
     fase: 0,
     players: [makePlayer()],
+    bookmark: null,
   });
 
   /* ---------- audio ---------- */
@@ -300,6 +425,36 @@
     };
   }
 
+  function validStep(container, stepId) {
+    return blocksFor(container).some(
+      (block) => block.kind === "step" && block.id === stepId
+    );
+  }
+
+  function sanitizeBookmark(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const container = typeof raw.container === "string" ? raw.container : "";
+    const stepId = typeof raw.step === "string" ? raw.step : "";
+    if (!isKnownContainer(container) || !validStep(container, stepId)) return null;
+    return { container, step: stepId };
+  }
+
+  function sanitizeActionLabel(raw) {
+    if (typeof raw === "string") return raw;
+    if (raw && typeof raw.key === "string") {
+      const vars = {};
+      if (raw.vars && typeof raw.vars === "object") {
+        Object.entries(raw.vars).forEach(([key, value]) => {
+          if (typeof value === "string" || typeof value === "number") {
+            vars[key] = value;
+          }
+        });
+      }
+      return { key: raw.key, vars };
+    }
+    return "";
+  }
+
   function sanitize(raw) {
     const turno = Math.floor(Number(raw && raw.turno));
     const fase = Math.floor(Number(raw && raw.fase));
@@ -324,6 +479,7 @@
       turno: Number.isFinite(turno) ? Math.max(1, turno) : 1,
       fase: Number.isFinite(fase) ? Math.min(LAST_PHASE, Math.max(0, fase)) : 0,
       players,
+      bookmark: sanitizeBookmark(raw && raw.bookmark),
     };
   }
 
@@ -332,12 +488,13 @@
       turno: source.turno,
       fase: source.fase,
       players: source.players.map((player) => ({ ...player })),
+      bookmark: source.bookmark ? { ...source.bookmark } : null,
     };
   }
 
   function playerName(player, index) {
     const name = player && typeof player.name === "string" ? player.name.trim() : "";
-    return name || `Giocatore ${index + 1}`;
+    return name || t("ui.playerDefault", { n: index + 1 });
   }
 
   function playerById(id) {
@@ -370,11 +527,10 @@
 
   function containerTitle(container) {
     if (isProcessContainer(container)) {
-      const process = PROCESSI[container.slice(5)];
-      return process ? process.name : "Processo";
+      const kind = container.slice(5);
+      return PROCESSI[kind] ? processName(kind) : t("ui.containerProcess");
     }
-    const phase = FASI[Number(container)];
-    return phase ? phase.name : "Fase";
+    return FASI[Number(container)] ? phaseName(Number(container)) : t("ui.containerPhase");
   }
 
   function isKnownContainer(container) {
@@ -402,7 +558,9 @@
 
   function gapLabel(container, anchor) {
     const blocks = blocksFor(container);
-    const finale = isProcessContainer(container) ? "Fine del processo" : "Fine della fase";
+    const finale = t(
+      isProcessContainer(container) ? "ui.gapEndProcess" : "ui.gapEndPhase"
+    );
     if (anchor === "end") return finale;
 
     const index = blocks.findIndex((block) => block.id === anchor);
@@ -411,8 +569,9 @@
     const next = blocks[index + 1];
     if (!next) return finale;
 
-    const label = (block) => (block.kind === "window" ? "la finestra di azione" : block.id);
-    return `Tra ${label(blocks[index])} e ${label(next)}`;
+    const name = (block) =>
+      block.kind === "window" ? t("ui.gapWindow") : block.id;
+    return t("ui.gapBetween", { a: name(blocks[index]), b: name(next) });
   }
 
   function phaseHasNotes(index) {
@@ -420,6 +579,33 @@
     (PROCESSI_FASE[index] || []).forEach((kind) => prefixes.push(`proc:${kind}::`));
     return Object.keys(notes).some((key) =>
       prefixes.some((prefix) => key.startsWith(prefix))
+    );
+  }
+
+  // Fase a cui appartiene un contenitore: i processi di combattimento
+  // condividono la fase 6 (indice 5).
+  function phaseOfContainer(container) {
+    if (!container) return -1;
+    if (isProcessContainer(container)) {
+      const kind = container.slice(5);
+      const found = Object.keys(PROCESSI_FASE).find((index) =>
+        PROCESSI_FASE[index].includes(kind)
+      );
+      return found === undefined ? -1 : Number(found);
+    }
+    return /^\d+$/.test(container) ? Number(container) : -1;
+  }
+
+  function phaseHasBookmark(index) {
+    if (!state.bookmark) return false;
+    return phaseOfContainer(state.bookmark.container) === index;
+  }
+
+  function isBookmarked(container, stepId) {
+    return (
+      !!state.bookmark &&
+      state.bookmark.container === container &&
+      state.bookmark.step === stepId
     );
   }
 
@@ -460,12 +646,16 @@
       if (data.state) state = sanitize(data.state);
       if (Array.isArray(data.history)) {
         history = data.history
-          .filter((entry) => entry && entry.state && typeof entry.label === "string")
+          .filter((entry) => entry && entry.state && entry.label)
           .slice(-HISTORY_LIMIT)
-          .map((entry) => ({ state: sanitize(entry.state), label: entry.label }));
+          .map((entry) => ({
+            state: sanitize(entry.state),
+            label: sanitizeActionLabel(entry.label),
+          }));
       }
       notes = sanitizeNotes(data.notes);
       if (typeof data.wake === "boolean") wakeWanted = data.wake;
+      if (typeof data.lang === "string" && I18N[data.lang]) lang = data.lang;
       // Solo due stati: verticale (0) e orizzontale (90).
       // I vecchi salvataggi a 270 vengono riportati a 90, 180 a 0.
       if ([90, 270].includes(Number(data.rotation))) {
@@ -480,7 +670,7 @@
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ state, history, notes, wake: wakeWanted, rotation })
+        JSON.stringify({ state, history, notes, wake: wakeWanted, rotation, lang })
       );
     } catch (error) {
       /* quota o modalità privata: ignorato */
@@ -542,9 +732,25 @@
 
     Array.from(el.stepper.children).forEach((pill, index) => {
       const current = index === state.fase;
+      const hasNotes = phaseHasNotes(index);
+      const hasBookmark = phaseHasBookmark(index);
       pill.classList.toggle("current", current);
       pill.classList.toggle("done", index < state.fase);
-      pill.classList.toggle("has-notes", phaseHasNotes(index));
+      pill.classList.toggle("has-notes", hasNotes);
+      pill.classList.toggle("has-bookmark", hasBookmark);
+      const name = pill.querySelector(".step-pill-name");
+      if (name) name.textContent = phaseName(index);
+      const extra = [
+        hasNotes ? t("ui.hasNotes") : "",
+        hasBookmark ? t("ui.hasBookmark") : "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      pill.setAttribute(
+        "aria-label",
+        t("ui.phaseAria", { n: index + 1, name: phaseName(index) }) +
+          (extra ? ` (${extra})` : "")
+      );
       if (current) {
         pill.setAttribute("aria-current", "step");
       } else {
@@ -552,24 +758,30 @@
       }
     });
 
-    const phase = FASI[state.fase];
-    el.phaseNum.textContent = String(state.fase + 1);
-    el.phaseName.textContent = phase.name;
+    el.phaseEyebrow.textContent = t("ui.phaseOf", {
+      n: state.fase + 1,
+      total: FASI.length,
+    });
+    el.phaseName.textContent = phaseName(state.fase);
     renderPhaseBlocks();
     if (faseChanged) el.phaseCard.scrollTop = 0;
 
     if (state.fase === LAST_PHASE) {
-      el.nextHint.textContent = `→ Turno ${state.turno + 1} · Minaccia +1`;
+      el.nextHint.textContent = t("ui.nextTurnHint", { n: state.turno + 1 });
     } else {
-      el.nextHint.textContent = `→ ${FASI[state.fase + 1].name}`;
+      el.nextHint.textContent = t("ui.nextPhaseHint", {
+        name: phaseName(state.fase + 1),
+      });
     }
 
     const last = history[history.length - 1];
     el.undo.disabled = !last;
-    el.undoLabel.textContent = last ? last.label : "Annulla";
+    el.undoLabel.textContent = last ? labelText(last.label) : t("ui.undo");
     el.undo.setAttribute(
       "aria-label",
-      last ? `Annulla: ${last.label}` : "Nessuna azione da annullare"
+      last
+        ? t("ui.undoAria", { label: labelText(last.label) })
+        : t("ui.undoNone")
     );
 
     lastRendered = { turno: state.turno, fase: state.fase };
@@ -590,6 +802,7 @@
     const tablet = isTablet();
     const visible = tablet ? state.players : state.players.slice(0, 1);
     const key = [
+      lang,
       tablet ? "tablet" : "phone",
       visible.map((player) => `${player.id}:${player.name}`).join("|"),
       tablet && state.players.length < PLAYER_LIMIT ? "add" : "",
@@ -622,7 +835,7 @@
     // Didascalia solo su tablet: chiarisce che il numero è la Minaccia.
     const caption = document.createElement("span");
     caption.className = "player-caption";
-    caption.textContent = "Minaccia";
+    caption.textContent = t("ui.threat");
     card.appendChild(caption);
 
     const head = document.createElement("div");
@@ -636,7 +849,8 @@
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "player-remove";
-    remove.innerHTML = "&times;";
+    remove.innerHTML =
+      '<span class="icon-mask icon-close" aria-hidden="true"></span>';
     remove.addEventListener("click", () => removePlayer(player.id));
 
     head.append(name, remove);
@@ -679,9 +893,10 @@
     const add = document.createElement("button");
     add.type = "button";
     add.className = "counter counter-add";
-    add.setAttribute("aria-label", "Aggiungi un giocatore");
+    add.setAttribute("aria-label", t("ui.addPlayerAria"));
     add.innerHTML =
-      '<span class="add-mark" aria-hidden="true">＋</span><span class="add-label">Aggiungi giocatore</span>';
+      '<span class="add-mark icon-mask icon-plus" aria-hidden="true"></span>' +
+      `<span class="add-label">${t("ui.addPlayer")}</span>`;
     add.addEventListener("click", addPlayer);
     return add;
   }
@@ -707,36 +922,45 @@
       refs.name.textContent = tablet
         ? label
         : player.name.trim()
-          ? `Minaccia · ${label}`
-          : "Minaccia";
+          ? t("ui.threatNamed", { name: label })
+          : t("ui.threat");
       refs.name.disabled = !tablet;
       refs.name.setAttribute(
         "aria-label",
-        tablet ? `Rinomina ${label}` : `Minaccia di ${label}`
+        tablet
+          ? t("ui.renamePlayerAria", { name: label })
+          : t("ui.threatOfAria", { name: label })
       );
 
       refs.remove.hidden = !canRemove;
-      refs.remove.setAttribute("aria-label", `Rimuovi ${label}`);
+      refs.remove.setAttribute("aria-label", t("ui.removePlayerAria", { name: label }));
 
       refs.value.textContent = String(player.threat);
       refs.value.classList.toggle("long", String(player.threat).length > 2);
       refs.value.classList.toggle("alert", alert);
       refs.value.setAttribute(
         "aria-label",
-        `Minaccia di ${label}: ${player.threat}${
-          alert ? ", livello di allarme" : ""
-        }${needsSetup ? ", valore iniziale da impostare" : ""}. Tocca per impostare un valore`
+        t("ui.threatValueAria", {
+          name: label,
+          value: player.threat,
+          alert: alert ? t("ui.alertSuffix") : "",
+          setup: needsSetup ? t("ui.setupSuffix") : "",
+        })
       );
 
       refs.minus.disabled = player.threat <= 0;
-      refs.minus.setAttribute("aria-label", `Diminuisci la minaccia di ${label}`);
-      refs.plus.setAttribute("aria-label", `Aumenta la minaccia di ${label}`);
+      refs.minus.setAttribute(
+        "aria-label",
+        t("ui.minusThreatAria", { name: label })
+      );
+      refs.plus.setAttribute(
+        "aria-label",
+        t("ui.plusThreatAria", { name: label })
+      );
 
       refs.card.classList.toggle("needs-setup", needsSetup);
       if (!needsSetup) refs.card.classList.remove("threat-pulse");
-      refs.hint.textContent = needsSetup
-        ? "Imposta la minaccia iniziale"
-        : "tocca il numero per impostarlo";
+      refs.hint.textContent = needsSetup ? t("ui.setupHint") : t("ui.editHint");
     });
   }
 
@@ -756,7 +980,7 @@
   function addPlayer() {
     if (state.players.length >= PLAYER_LIMIT) return;
     const player = makePlayer();
-    mutate("Aggiungi giocatore", () => {
+    mutate(actionLabel("history.addPlayer"), () => {
       state.players.push(player);
     });
     pulseThreatReminders(player.id);
@@ -768,7 +992,7 @@
     const index = playerIndex(id);
     if (index === -1) return;
     const label = playerName(state.players[index], index);
-    mutate(`Rimuovi ${label}`, () => {
+    mutate(actionLabel("history.removePlayer", { name: label }), () => {
       state.players = state.players.filter((player) => player.id !== id);
     });
     vibrate(8);
@@ -780,6 +1004,19 @@
     state.players.forEach((player) => {
       if (!player.setup) player.setup = true;
     });
+  }
+
+  function toggleBookmark(container, stepId) {
+    // Un solo segnalibro: toccare lo stesso passo lo rimuove, toccarne un
+    // altro lo sposta. Non passa dalla cronologia (come le note).
+    const same = isBookmarked(container, stepId);
+    state.bookmark = same ? null : { container, step: stepId };
+    renderedPhaseKey = null;
+    renderedProcessKey = null;
+    save();
+    render();
+    if (activeProcess) renderProcessList();
+    vibrate(6);
   }
 
   function renderPhaseBlocks() {
@@ -805,7 +1042,7 @@
       if (block.kind === "window") {
         const windowEl = document.createElement("div");
         windowEl.className = "action-window";
-        windowEl.textContent = "Finestra di azione";
+        windowEl.textContent = t("ui.actionWindow");
         parent.appendChild(windowEl);
       } else {
         const row = document.createElement("div");
@@ -820,12 +1057,42 @@
 
         const text = document.createElement("p");
         text.className = "step-text";
-        text.textContent = block.text;
+        text.textContent = stepText(block);
         body.appendChild(text);
 
         if (block.process) body.appendChild(processButton(block.process));
 
-        row.append(num, body);
+        const bookmarked = isBookmarked(container, block.id);
+        row.classList.toggle("bookmarked", bookmarked);
+
+        const bookmark = document.createElement("button");
+        bookmark.type = "button";
+        bookmark.className = "step-bookmark";
+        bookmark.innerHTML = ICON_BOOKMARK;
+        bookmark.setAttribute("aria-pressed", String(bookmarked));
+        bookmark.setAttribute(
+          "aria-label",
+          bookmarked
+            ? t("ui.bookmarkRemove", { step: block.id })
+            : t("ui.bookmarkAdd", { step: block.id })
+        );
+        bookmark.title = bookmarked
+          ? t("ui.bookmarkRemoveShort")
+          : t("ui.bookmarkAddShort");
+        bookmark.addEventListener("click", () => toggleBookmark(container, block.id));
+
+        // Tutta la riga è un bersaglio per il segnalibro: il nastro resta
+        // l'indicatore e il controllo da tastiera. I pulsanti interni (nastro,
+        // “Apri il processo”) gestiscono già il proprio click.
+        row.addEventListener("click", (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          if (target && target.closest("button")) return;
+          const selection = window.getSelection();
+          if (selection && !selection.isCollapsed) return;
+          toggleBookmark(container, block.id);
+        });
+
+        row.append(num, body, bookmark);
         parent.appendChild(row);
       }
 
@@ -839,12 +1106,14 @@
   }
 
   function processButton(kind) {
-    const process = PROCESSI[kind];
     const button = document.createElement("button");
     button.type = "button";
     button.className = "process-btn";
-    button.textContent = "Apri il processo →";
-    button.setAttribute("aria-label", `Apri il processo ${process.name}`);
+    button.textContent = t("ui.openProcess");
+    button.setAttribute(
+      "aria-label",
+      t("ui.openProcessAria", { name: processName(kind) })
+    );
     button.addEventListener("click", () => openProcess(kind));
     return button;
   }
@@ -862,7 +1131,10 @@
         card.type = "button";
         card.className = "player-note";
         card.textContent = note.text;
-        card.setAttribute("aria-label", `Modifica la nota: ${note.text}`);
+        card.setAttribute(
+          "aria-label",
+          t("ui.editNoteAria", { text: note.text })
+        );
         card.addEventListener("click", () => openNotesSheet(container, anchor));
         notesEl.appendChild(card);
       });
@@ -872,9 +1144,12 @@
     const add = document.createElement("button");
     add.type = "button";
     add.className = "gap-add";
-    add.innerHTML = '<span aria-hidden="true">＋</span>';
-    add.title = "Aggiungi nota";
-    add.setAttribute("aria-label", `Aggiungi una nota · ${gapLabel(container, anchor)}`);
+    add.innerHTML = '<span class="icon-mask icon-plus" aria-hidden="true"></span>';
+    add.title = t("ui.addNoteTitle");
+    add.setAttribute(
+      "aria-label",
+      t("ui.addNoteAria", { gap: gapLabel(container, anchor) })
+    );
     add.addEventListener("click", () => openNotesSheet(container, anchor));
     gap.appendChild(add);
 
@@ -885,7 +1160,7 @@
 
   const turnoCounter = {
     min: 1,
-    label: () => "Turno",
+    label: () => t("ui.turn"),
     get: () => state.turno,
     set: (value) => {
       state.turno = value;
@@ -898,8 +1173,8 @@
       label: () => {
         const index = playerIndex(id);
         return index === -1
-          ? "Minaccia"
-          : `Minaccia · ${playerName(state.players[index], index)}`;
+          ? t("ui.threat")
+          : t("ui.threatNamed", { name: playerName(state.players[index], index) });
       },
       get: () => {
         const player = playerById(id);
@@ -936,7 +1211,10 @@
     const commit = (session) => {
       const amount = counter.get() - session.value;
       if (amount === 0) return;
-      session.snap.label = `${counter.label()} ${amount > 0 ? "+" : ""}${amount}`;
+      session.snap.label = actionLabel("history.counter", {
+        label: labelText(counter.label()),
+        amount: `${amount > 0 ? "+" : ""}${amount}`,
+      });
       history.push(session.snap);
       trimHistory();
       save();
@@ -997,11 +1275,24 @@
       const pill = document.createElement("button");
       pill.type = "button";
       pill.className = "step-pill";
-      pill.textContent = String(index + 1);
-      pill.setAttribute("aria-label", `Fase ${index + 1}: ${phase.name}`);
+
+      const num = document.createElement("span");
+      num.className = "step-pill-num";
+      num.textContent = String(index + 1);
+
+      // Su tablet il nome affianca il numero (vedi styles.css).
+      const name = document.createElement("span");
+      name.className = "step-pill-name";
+      name.textContent = phaseName(index);
+
+      pill.append(num, name);
+      pill.setAttribute(
+        "aria-label",
+        t("ui.phaseAria", { n: index + 1, name: phaseName(index) })
+      );
       pill.addEventListener("click", () => {
         if (state.fase === index) return;
-        mutate(`Fase ${phase.name}`, () => {
+        mutate(actionLabel("history.phase", { name: phaseName(index) }), () => {
           acceptThreatSetup();
           state.fase = index;
         });
@@ -1014,7 +1305,7 @@
   function advance() {
     if (state.fase === LAST_PHASE) {
       const nextTurno = state.turno + 1;
-      mutate(`Turno ${nextTurno}`, () => {
+      mutate(actionLabel("history.turn", { n: nextTurno }), () => {
         acceptThreatSetup();
         state.turno = nextTurno;
         state.fase = 0;
@@ -1026,7 +1317,7 @@
       playSfx("round");
     } else {
       const target = state.fase + 1;
-      mutate(`Fase ${FASI[target].name}`, () => {
+      mutate(actionLabel("history.phase", { name: phaseName(target) }), () => {
         acceptThreatSetup();
         state.fase = target;
       });
@@ -1060,11 +1351,14 @@
     return button;
   }
 
+  // Icone Radix (MIT): i file stanno in root e il colore arriva dal tema
+  // tramite CSS mask (vedi .icon-mask in styles.css).
+  const ICON_BOOKMARK =
+    '<span class="icon-mask icon-bookmark" aria-hidden="true"></span>';
+
   const NOTE_ICONS = {
-    edit:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
-    trash:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+    edit: '<span class="icon-mask icon-pencil" aria-hidden="true"></span>',
+    trash: '<span class="icon-mask icon-trash" aria-hidden="true"></span>',
   };
 
   function noteIconButton(kind, ariaLabel, onClick) {
@@ -1089,12 +1383,12 @@
         textarea.className = "note-edit";
         textarea.maxLength = NOTE_LIMIT;
         textarea.value = note.text;
-        textarea.setAttribute("aria-label", "Modifica nota");
+        textarea.setAttribute("aria-label", t("ui.noteEditAria", { text: note.text }));
 
         const actions = document.createElement("div");
         actions.className = "note-actions";
         actions.append(
-          noteButton("note-text-btn primary-mini", "Salva", () => {
+          noteButton("note-text-btn primary-mini", t("ui.noteSave"), () => {
             const value = textarea.value.trim().slice(0, NOTE_LIMIT);
             if (!value) {
               textarea.focus();
@@ -1106,7 +1400,7 @@
             renderNotesSheet();
             vibrate(6);
           }),
-          noteButton("note-text-btn", "Annulla", () => {
+          noteButton("note-text-btn", t("ui.noteCancel"), () => {
             editingNoteId = null;
             renderNotesSheet();
           })
@@ -1126,7 +1420,7 @@
         const actions = document.createElement("div");
         actions.className = "note-actions";
         actions.append(
-          noteButton("note-text-btn danger", "Elimina", () => {
+          noteButton("note-text-btn danger", t("ui.noteDelete"), () => {
             if (!noteScope) return;
             const key = noteKey(noteScope.container, noteScope.anchor);
             notes[key] = (notes[key] || []).filter((item) => item.id !== note.id);
@@ -1135,7 +1429,7 @@
             renderNotesSheet();
             vibrate(8);
           }),
-          noteButton("note-text-btn", "Annulla", () => {
+          noteButton("note-text-btn", t("ui.noteCancel"), () => {
             deletingNoteId = null;
             renderNotesSheet();
           })
@@ -1149,12 +1443,12 @@
 
         const actions = document.createElement("div");
         actions.className = "note-actions";
-        const edit = noteIconButton("edit", `Modifica nota: ${note.text}`, () => {
+        const edit = noteIconButton("edit", t("ui.noteEditAria", { text: note.text }), () => {
           editingNoteId = note.id;
           deletingNoteId = null;
           renderNotesSheet();
         });
-        const remove = noteIconButton("trash", `Elimina nota: ${note.text}`, () => {
+        const remove = noteIconButton("trash", t("ui.noteDeleteAria", { text: note.text }), () => {
           deletingNoteId = note.id;
           editingNoteId = null;
           renderNotesSheet();
@@ -1178,8 +1472,12 @@
     noteScope = { container, anchor };
     editingNoteId = null;
     deletingNoteId = null;
-    el.notesTitle.textContent = `Note · ${containerTitle(container)}`;
-    el.notesSub.textContent = `${gapLabel(container, anchor)}. Restano anche con “Nuova partita”.`;
+    el.notesTitle.textContent = t("ui.notesTitle", {
+      container: containerTitle(container),
+    });
+    el.notesSub.textContent = t("ui.notesSub", {
+      gap: gapLabel(container, anchor),
+    });
     el.notesInput.value = "";
     updateNotesComposer();
     renderNotesSheet();
@@ -1238,7 +1536,7 @@
   function openProcess(kind) {
     if (!PROCESSI[kind]) return;
     activeProcess = kind;
-    el.processTitle.textContent = PROCESSI[kind].name;
+    el.processTitle.textContent = processName(kind);
     renderProcessList();
     openOverlay(el.processOverlay);
   }
@@ -1256,7 +1554,9 @@
     if (index === -1) return;
     threatTargetId = id;
     const player = state.players[index];
-    el.threatSub.textContent = `${playerName(player, index)} · valore tra 0 e 999.`;
+    el.threatSub.textContent = t("ui.threatSubNamed", {
+      name: playerName(player, index),
+    });
     el.threatInput.value = String(player.threat);
     openOverlay(el.threatOverlay);
     requestAnimationFrame(() => {
@@ -1287,7 +1587,7 @@
       return;
     }
 
-    mutate(`Minaccia ${value}`, () => {
+    mutate(actionLabel("history.threat", { value }), () => {
       const target = playerById(threatTargetId);
       if (!target) return;
       target.threat = value;
@@ -1303,9 +1603,14 @@
     if (index === -1) return;
     nameTargetId = id;
     const player = state.players[index];
-    el.nameTitle.textContent = `Nome · ${playerName(player, index)}`;
+    el.nameTitle.textContent = t("ui.nameDialogTitle", {
+      name: playerName(player, index),
+    });
     el.nameInput.value = player.name;
-    el.nameInput.setAttribute("aria-label", `Nome di ${playerName(player, index)}`);
+    el.nameInput.setAttribute(
+      "aria-label",
+      t("ui.nameInputAria", { name: playerName(player, index) })
+    );
     openOverlay(el.nameOverlay);
     requestAnimationFrame(() => {
       el.nameInput.focus();
@@ -1324,19 +1629,25 @@
       .slice(0, PLAYER_NAME_MAX);
     if (value === player.name) return;
 
-    mutate(value ? `Nome: ${value}` : "Nome rimosso", () => {
-      const target = playerById(nameTargetId);
-      if (target) target.name = value;
-    });
+    mutate(
+      value
+        ? actionLabel("history.name", { name: value })
+        : actionLabel("history.nameRemoved"),
+      () => {
+        const target = playerById(nameTargetId);
+        if (target) target.name = value;
+      }
+    );
     vibrate(6);
   }
 
   function confirmReset() {
     closeOverlay(el.resetOverlay);
-    mutate("Nuova partita", () => {
+    mutate(actionLabel("history.newGame"), () => {
       // Nomi e roster restano: si riparte solo con la minaccia iniziale.
       state.turno = 1;
       state.fase = 0;
+      state.bookmark = null;
       state.players = state.players.map((player) => ({
         ...player,
         threat: THREAT_DEFAULT,
@@ -1469,10 +1780,13 @@
     const targetLandscape = rotated
       ? window.innerWidth > window.innerHeight
       : window.innerHeight > window.innerWidth;
-    const target = targetLandscape ? "orizzontale" : "verticale";
-    const prefix = rotated ? "Riporta" : "Ruota";
-    el.rotateBtn.setAttribute("aria-label", `${prefix} l'interfaccia in ${target}`);
-    el.rotateBtn.title = `${prefix} in ${target}`;
+    el.rotateBtn.setAttribute(
+      "aria-label",
+      t(targetLandscape ? "ui.rotateLandscape" : "ui.rotatePortrait")
+    );
+    el.rotateBtn.title = t(
+      targetLandscape ? "ui.rotateTitleLandscape" : "ui.rotateTitlePortrait"
+    );
   }
 
   function applyRotation(value, persist = true) {
@@ -1494,24 +1808,6 @@
 
   /* ---------- fullscreen ---------- */
 
-  const FS_ICON_ENTER =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M8 3H5a2 2 0 0 0-2 2v3"/>' +
-    '<path d="M21 8V5a2 2 0 0 0-2-2h-3"/>' +
-    '<path d="M3 16v3a2 2 0 0 0 2 2h3"/>' +
-    '<path d="M16 21h3a2 2 0 0 0 2-2v-3"/>' +
-    "</svg>";
-
-  const FS_ICON_EXIT =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M8 3v3a2 2 0 0 1-2 2H3"/>' +
-    '<path d="M21 8h-3a2 2 0 0 1-2-2V3"/>' +
-    '<path d="M3 16h3a2 2 0 0 1 2 2v3"/>' +
-    '<path d="M16 21v-3a2 2 0 0 1 2-2h3"/>' +
-    "</svg>";
-
   // Lo schermo intero va sulla radice: i browser applicano
   // "transform: none !important" all'elemento fullscreen non-root,
   // quindi usare #rotator annullerebbe la rotazione.
@@ -1525,10 +1821,11 @@
   }
 
   function updateFullscreenButton() {
-    if (!fullscreenSupported) return;
+    // Il pulsante fullscreen è commentato in index.html (al suo posto c'è il
+    // selettore lingua). Il codice resta pronto per riattivarlo.
+    if (!fullscreenSupported || !el.fullscreenBtn) return;
     const active = !!fullscreenElement();
-    el.fullscreenBtn.innerHTML = active ? FS_ICON_EXIT : FS_ICON_ENTER;
-    const label = active ? "Esci da schermo intero" : "Schermo intero";
+    const label = t(active ? "ui.fullscreenExit" : "ui.fullscreenEnter");
     el.fullscreenBtn.setAttribute("aria-label", label);
     el.fullscreenBtn.setAttribute("aria-pressed", String(active));
     el.fullscreenBtn.title = label;
@@ -1560,14 +1857,16 @@
 
   let wakeLock = null;
   let wakeRequest = null;
+  let wakeMode = "off";
 
   function setWakeBadge(mode) {
+    wakeMode = mode;
     el.wakeBadge.dataset.state = mode;
 
     if (mode === "unsupported") {
-      el.wakeText.textContent = "Non supportato";
-      el.wakeBadge.title = "Questo browser non supporta il blocco dello schermo";
-      el.wakeBadge.setAttribute("aria-label", "Blocco schermo non supportato da questo browser");
+      el.wakeText.textContent = t("ui.wakeUnsupported");
+      el.wakeBadge.title = t("ui.wakeUnsupportedTitle");
+      el.wakeBadge.setAttribute("aria-label", t("ui.wakeUnsupportedAria"));
       el.wakeBadge.setAttribute("aria-disabled", "true");
       el.wakeBadge.removeAttribute("aria-pressed");
       return;
@@ -1575,17 +1874,13 @@
 
     el.wakeBadge.removeAttribute("aria-disabled");
     const active = mode === "on";
-    el.wakeText.textContent = active ? "Schermo attivo" : "Schermo spento";
+    el.wakeText.textContent = t(active ? "ui.wakeOn" : "ui.wakeOff");
     el.wakeBadge.setAttribute("aria-pressed", String(active));
     el.wakeBadge.setAttribute(
       "aria-label",
-      active
-        ? "Schermo sempre attivo: attivo. Tocca per disattivare"
-        : "Schermo sempre attivo: spento. Tocca per attivare"
+      t(active ? "ui.wakeOnAria" : "ui.wakeOffAria")
     );
-    el.wakeBadge.title = active
-      ? "Tocca per spegnere il blocco schermo"
-      : "Tocca per tenere lo schermo acceso";
+    el.wakeBadge.title = t(active ? "ui.wakeOnTitle" : "ui.wakeOffTitle");
   }
 
   function releaseWakeLock() {
@@ -1649,6 +1944,9 @@
   /* ---------- init ---------- */
 
   load();
+  lang = detectLanguage();
+  applyStaticTexts();
+  updateLanguageButton();
   applyRotation(rotation, false);
   buildStepper();
   render();
@@ -1675,13 +1973,18 @@
   el.next.addEventListener("click", advance);
 
   el.rotateBtn.addEventListener("click", () => applyRotation(rotation === 0 ? 90 : 0));
-  el.fullscreenBtn.addEventListener("click", toggleFullscreen);
+  if (el.langBtn) el.langBtn.addEventListener("click", cycleLanguage);
   el.wakeBadge.addEventListener("click", toggleWakeLock);
 
-  if (!fullscreenSupported) {
-    el.fullscreenBtn.hidden = true;
-  } else {
-    updateFullscreenButton();
+  // Il pulsante fullscreen è commentato in index.html: se viene riattivato,
+  // questo blocco lo collega senza altre modifiche.
+  if (el.fullscreenBtn) {
+    el.fullscreenBtn.addEventListener("click", toggleFullscreen);
+    if (!fullscreenSupported) {
+      el.fullscreenBtn.hidden = true;
+    } else {
+      updateFullscreenButton();
+    }
   }
   document.addEventListener("fullscreenchange", () => {
     updateFullscreenButton();

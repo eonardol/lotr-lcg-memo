@@ -7,6 +7,41 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-15
+
+### Added
+
+- **Segnalibro su un passo**: tocca il passo (o il nastro accanto) per segnarlo;
+  il segnalibro è unico e si sposta toccando un altro passo. La riga segnata
+  ha una barra dorata e sullo stepper compare un puntino giallo sulla fase
+  corrispondente (anche per i passi dei processi di combattimento, che
+  marcano la fase 6).
+- **Interfaccia bilingue IT/EN**: il pulsante in alto a destra alterna le due
+  lingue e la scelta viene ricordata. Oltre ai testi dell'interfaccia sono
+  tradotti i nomi delle fasi, dei processi e i passi del regolamento, le
+  etichette della cronologia, i titoli dei popup e i messaggi accessibili.
+  La lingua iniziale segue `?lang=`, poi la preferenza salvata, poi la lingua
+  del browser, con l'italiano come riserva.
+- **Nomi delle fasi sullo stepper del tablet**: con spazio a disposizione ogni
+  pulsante 1–7 mostra il numero e il nome della fase.
+
+### Changed
+
+- Il **puntino delle note** sullo stepper è ora **viola**; il segnalibro usa un
+  secondo puntino **giallo** in basso a destra, così i due restano distinguibili
+  anche sulla fase corrente dorata.
+- “Nuova partita” azzera anche il segnalibro (resta recuperabile con Annulla).
+- Il pulsante **schermo intero** è stato rimosso dall'header e sostituito dal
+  selettore di lingua; il codice e il markup restano pronti per riattivarlo.
+- I nomi delle fasi nello stepper si aggiornano insieme alla lingua, senza
+  ricreare i pulsanti.
+- **Suoni aggiornati**: `tap.mp3`, `undo.mp3` e `new-round.mp3` sono stati
+  sostituiti con nuove registrazioni.
+- **Icone Radix**: segnalibro, note, rotazione, annulla, nuova partita,
+  chiusura e aggiunta usano il set
+  [Radix Icons](https://www.radix-ui.com/icons) (MIT). In root ci sono solo
+  i file usati; la cartella completa `icons/` è esclusa da git.
+
 ## [1.1.1] - 2026-11-14
 
 ### Added
@@ -64,10 +99,6 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 - I salvataggi della 1.0.0 vengono convertiti automaticamente in un unico
   giocatore con la Minaccia e il promemoria precedenti.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.1.1...HEAD
-[1.1.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.1
-[1.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.0
-
 ## [1.0.0] - 2026-11-14
 
 Prima release pubblica.
@@ -112,5 +143,8 @@ Prima release pubblica.
   testo allineato a sinistra allo stesso rientro dei passi.
 - Il contenuto della card fase è allineato in alto.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.2.0
+[1.1.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.1
+[1.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.0
 [1.0.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.0.0

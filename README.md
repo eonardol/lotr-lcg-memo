@@ -8,15 +8,17 @@ Webapp leggera di supporto per **Il Signore degli Anelli LCG**, pensata per il t
 - **Promemoria Minaccia iniziale**: al primo avvio e dopo “Nuova partita” la card pulsa con un anello dorato, mostra il badge “!” e una pastiglia “Imposta la minaccia iniziale” finché non imposti il valore (30 è solo un default), per ciascun giocatore. Se premi AVANTI o salti a un'altra fase, il valore corrente (30) viene considerato confermato.
 - **Tracker delle 7 fasi** con tutti i passi numerati del regolamento (1.1, 1.2, …) e le **finestre di azione** evidenziate in rosso.
 - **Processi di combattimento in popup**: “Risolvere gli Attacchi dei Nemici” e “Risolvere gli Attacchi dei Giocatori”, apribili dai passi 6.4a e 6.8a.
-- **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino sullo stepper.
+- **Segnalibro su un passo**: il nastro accanto a ogni passo segna un solo punto alla volta; la riga si evidenzia e sullo stepper compare un puntino giallo sulla fase corrispondente (i processi di combattimento marcano la fase 6). “Nuova partita” lo azzera.
+- **Note personalizzate tra un passo e l'altro**: il `＋` in ogni spazio apre il pannello di quel punto; le note compaiono inline in viola, con aggiunta, modifica ed eliminazione. Restano anche con “Nuova partita” e sono segnalate da un puntino viola sullo stepper.
+- **Interfaccia bilingue IT/EN**: il pulsante in alto a destra alterna italiano e inglese (scelta ricordata). Sono tradotti anche fasi, processi, passi del regolamento, cronologia e messaggi dei popup. La lingua iniziale segue `?lang=`, poi la preferenza salvata, poi quella del browser.
+- **Nomi delle fasi sullo stepper del tablet**: con spazio a disposizione ogni pulsante 1–7 mostra numero e nome.
 - **AVANTI** avanza la fase; dal Ristoro fa partire il turno successivo (`Turno+1`, `Minaccia+1` a tutti i giocatori, di nuovo Risorsa).
 - **Minaccia in rosso da 50 in su**.
 - **Undo** a 30 passi: annulla tap sbagliati, cambi fase, avanzamenti e anche il reset.
 - **Ruota interfaccia** con il tasto `↻`: passa tra verticale e orizzontale, utile col telefono appoggiato o fissato a un supporto. La scelta viene ricordata.
-- **Schermo intero** con il tasto `⛶` accanto alla rotazione (dove il browser lo supporta).
 - **Blocco schermo on/off**: il badge in alto è un interruttore; la preferenza viene salvata.
 - **Suoni**: `tap.mp3` a ogni pulsante, `undo.mp3` quando annulli un'azione, `new-round.mp3` quando dal Ristoro parte il turno successivo.
-- Stato, fase, note e cronologia salvati in `localStorage`: riaprendo ritrovi la partita dov'era. Le note sopravvivono a “Nuova partita”.
+- Stato, fase, segnalibro, lingua, note e cronologia salvati in `localStorage`: riaprendo ritrovi la partita dov'era. Le note sopravvivono a “Nuova partita”.
 - **PWA installabile e offline first** (manifest + service worker): dopo il primo caricamento funziona anche senza rete. La versione è mostrata accanto al brand.
 
 ## Prova in locale
@@ -39,10 +41,11 @@ Tutti i percorsi sono relativi, quindi funziona sia come sito "root" sia come so
 
 ## Personalizzazione
 
-Tutto sta in `app.js`, tranne la versione:
+I testi stanno in `i18n.js`, la logica e la struttura in `app.js`, la versione in `version.js`:
 
 - `version.js`: `self.APP_VERSION` è l'unica fonte di verità per la versione mostrata e per la cache del service worker.
-- `FASI`: per ogni fase il nome e i blocchi, creati con `step("1.1", "…")` e `actionWindow("w-1")`.
+- `i18n.js`: dizionari `it` e `en` (nomi delle fasi, dei processi, testi dei passi, interfaccia, cronologia). Le chiavi dei passi sono gli id stabili usati da note e segnalibro.
+- `FASI`: per ogni fase i blocchi, creati con `step("1.1")` e `actionWindow("w-1")`; il testo arriva da `i18n.js` tramite l'id.
 - `PROCESSI`: i due processi di combattimento mostrati nei popup (passi e finestre di azione).
 - `initialState()`: stato di partenza (`turno: 1`, `fase: 0`, un solo giocatore con `threat: 30` e `setup: false`).
 - `PLAYER_LIMIT` (4) e `PLAYER_NAME_MAX` (18): numero massimo di giocatori e lunghezza del nome.
@@ -63,6 +66,20 @@ Tutto sta in `app.js`, tranne la versione:
 
 Le note sono salvate nello stesso documento `localStorage` sotto `notes`, indicizzate per contenitore e spazio: `"0::1.3"` = dopo il passo 1.3 della fase Risorsa, `"0::end"` = fine fase, `"proc:nemici::6.4.1"` = dopo 6.4.1 nel processo degli attacchi dei nemici. I salvataggi del vecchio formato (note per fase) vengono migrati automaticamente a fine fase. Non fanno parte dello stato di gioco, quindi non vengono azzerate da “Nuova partita” né toccate dall'undo.
 
+## Segnalibro
+
+- C'è **un solo segnalibro**: tocca un passo (numero o testo) oppure il nastro a destra per segnarlo; tocca di nuovo lo stesso passo per rimuoverlo, o un altro passo per spostarlo. I pulsanti “Apri il processo” non lo attivano.
+- Vale per i passi delle fasi e per quelli dei processi di combattimento (6.4.x e 6.8.x): in quel caso il puntino compare sulla fase 6.
+- La riga segnata ha una barra dorata; sullo stepper il segnalibro è il puntino **giallo** in basso a destra, mentre le note restano il puntino **viola** in alto a destra.
+- È salvato in `state.bookmark` (`{ container, step }`), quindi resta tra le sessioni; “Nuova partita” lo azzera e Annulla lo ripristina. Come le note, non occupa un passaggio della cronologia.
+
+## Lingua
+
+- Il pulsante in alto a destra mostra la lingua attiva (`IT` o `EN`) e al tocco passa all'altra; la scelta è salvata.
+- Ordine di scelta all'avvio: parametro `?lang=en` (utile per i test), poi la lingua salvata, poi `navigator.languages`, infine l'italiano.
+- Le traduzioni inglesi sono una prima stesura: i testi del regolamento vanno rifiniti sulla terminologia ufficiale. Per correggere basta modificare `i18n.js`.
+- Per aggiungere una lingua serve una nuova voce in `self.I18N` e una in `self.I18N_LANG_NAMES`: il pulsante la include automaticamente nel ciclo.
+
 Lo stile (tema scuro/oro) è in `styles.css`, variabili CSS in `:root`.
 
 ## Versione, changelog e ciclo di rilascio
@@ -75,13 +92,13 @@ qui sotto le regole per aggiornarlo insieme alla versione.
 La versione ha una sola fonte di verità: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.1.1";
+self.APP_VERSION = "1.2.0";
 ```
 
 Da lì:
 
-- `app.js` la mostra accanto al brand (`LOTR LCG v1.1.1`);
-- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.1.1`).
+- `app.js` la mostra accanto al brand (`LOTR LCG v1.2.0`);
+- `sw.js` la usa per il nome della cache (`lotr-lcg-v1.2.0`).
 
 Non scrivere il numero di versione in altri file: si cambia solo `version.js` e
 tutto il resto si aggiorna di conseguenza.
@@ -91,7 +108,7 @@ tutto il resto si aggiorna di conseguenza.
 - **MAJOR** (`2.0.0`): modifiche che rompono i salvataggi esistenti (formato di
   `localStorage`, note, cronologia) o cambiano radicalmente il modo d'uso.
 - **MINOR** (`1.1.0`): nuove funzioni retrocompatibili.
-- **PATCH** (`1.1.2`): correzioni di bug e ritocchi, senza nuove funzioni.
+- **PATCH** (`1.2.1`): correzioni di bug e ritocchi, senza nuove funzioni.
 
 ### Quando aggiornare la versione
 
@@ -117,14 +134,14 @@ non fanno parte del precache.
 6. Crea il **tag annotato** sul commit che vuoi pubblicare, dal terminale:
 
    ```bash
-   git tag -a v1.1.2 -m "v1.1.2"
+   git tag -a v1.2.1 -m "v1.2.1"
    ```
 
 7. Pusha commit e tag:
 
    ```bash
    git push origin main
-   git push origin v1.1.2
+   git push origin v1.2.1
    # oppure, se il branch è tracciato:
    git push --follow-tags
    ```
@@ -141,7 +158,7 @@ speciale. In alternativa si può creare dalla UI:
 
 In tutti i casi il tag deve puntare **esattamente al commit che viene
 pubblicato**, e deve essere annotato (`-a`) così conserva autore e messaggio.
-Per controllare: `git show v1.1.2` e, nell'app, la scritta accanto al brand.
+Per controllare: `git show v1.2.1` e, nell'app, la scritta accanto al brand.
 
 ### Rollback
 
@@ -152,7 +169,7 @@ Per tornare indietro:
 
 1. ripristina il codice con `git revert` del commit problematico (o riparti dal
    tag precedente con un nuovo commit);
-2. bumpa una **PATCH** (es. `1.1.2`);
+2. bumpa una **PATCH** (es. `1.2.1`);
 3. aggiungi la voce in `CHANGELOG.md` e ripeti il ciclo di rilascio.
 
 ### Verifica rapida
@@ -199,7 +216,7 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 
 - I browser permettono l'audio solo dopo un gesto dell'utente: sia il tap sia il suono di nuovo turno partono da un tocco, quindi vengono riprodotti correttamente. Se non senti nulla controlla il volume del telefono e l'interruttore del silenzioso.
 - Il volume degli effetti è impostato in `app.js` (`sfx`); puoi sostituire `tap.mp3`, `undo.mp3` e `new-round.mp3` mantenendo gli stessi nomi. Il tasto Annulla usa solo `undo.mp3`, senza il tap generico sovrapposto.
-- Il tasto `⛶` usa la Fullscreen API sulla radice della pagina (non sul contenitore ruotato: i browser annullano la trasformazione dell'elemento fullscreen) e diventa “esci” quando sei a schermo intero. La rotazione resta quindi attiva anche in fullscreen. Su iPhone Safari la Fullscreen API per gli elementi non è disponibile: in quel caso il tasto viene nascosto.
+- Lo schermo intero è **disattivato**: il pulsante `⛶` è stato sostituito dal selettore di lingua. Il markup è commentato in `index.html` e il codice in `app.js` è protetto da `if (el.fullscreenBtn)`, quindi riattivarlo richiede solo di togliere il commento (e rimettere il pulsante al posto o accanto a `langBtn`). La Fullscreen API era applicata alla radice della pagina, non al contenitore ruotato, così la rotazione restava attiva anche in fullscreen.
 
 ## Struttura
 
@@ -207,12 +224,20 @@ La preferenza è salvata, quindi se lo spegni resta spento anche dopo un ricaric
 index.html
 styles.css
 app.js
+i18n.js
 version.js
 sw.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
+bookmark.svg  bookmark-filled.svg  pencil-1.svg  trash.svg
+reload.svg  reset.svg  update.svg
+cross-2.svg  plus.svg
+enter-full-screen.svg  exit-full-screen.svg
 tap.mp3  undo.mp3  new-round.mp3
 CHANGELOG.md
 README.md
+.gitignore
 .nojekyll
 ```
+
+Le icone dell'interfaccia sono [Radix Icons](https://www.radix-ui.com/icons) (MIT): in root ci sono solo gli SVG usati, mentre la cartella completa `icons/` è esclusa da `.gitignore`.
