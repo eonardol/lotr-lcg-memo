@@ -376,6 +376,7 @@ body.modal-open #rotator {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
   padding: 10px 8px 8px;
   background: linear-gradient(180deg, #1c1710, var(--panel-2));
   border: 1px solid var(--line);
@@ -423,25 +424,20 @@ body.modal-open #rotator {
   color: var(--muted);
   background: none;
   border: 0;
-  cursor: default;
-}
-
-.player-name:disabled {
-  opacity: 1; /* resta leggibile: è un'etichetta, non un controllo spento */
-}
-
-.tablet .player-name {
-  padding: 0 24px;
-  font-size: 0.72rem;
   cursor: pointer;
   text-decoration: underline dotted rgba(201, 162, 39, 0.5);
   text-underline-offset: 3px;
 }
 
-.tablet .player-name:focus-visible {
+.player-name:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
   border-radius: 6px;
+}
+
+.tablet .player-name {
+  padding: 0 24px;
+  font-size: 0.72rem;
 }
 
 .player-remove {

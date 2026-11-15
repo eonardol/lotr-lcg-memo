@@ -7,6 +7,27 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-15
+
+### Added
+
+- **Game-over sound**: `game-over.mp3` plays when a player's threat reaches 50.
+  It fires once per crossing (going below and back above plays it again) and
+  also when the increase comes from Refresh or from the quest resolution; Undo
+  and reopening the app with the threat already high stay silent. The file is
+  in the service worker precache.
+
+### Changed
+
+- **Player name editable on phones too**: tap the “Threat · Name” label to open
+  the rename dialog, as on tablets. Previously names could only be changed in
+  tablet mode.
+
+### Fixed
+
+- Long player names no longer squeeze the neighbouring Turn counter on phones:
+  the label truncates with an ellipsis and both cards keep the same width.
+
 ## [1.3.0] - 2026-11-15
 
 ### Added
@@ -167,7 +188,8 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.1
 [1.3.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.0
 [1.2.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.2.0
 [1.1.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.1.1

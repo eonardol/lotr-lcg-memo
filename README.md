@@ -23,6 +23,7 @@ it works offline.
 - **Turn** and **Threat** (one per player) with `−` / `+` buttons (long-press to
   scroll fast).
 - Tap the Threat number to set any value (default 30).
+- Tap the player name to rename it, on phones and tablets alike.
 - **Multi-player on tablet** (short side ≥ 600 px): up to **4 threat counters**,
   one per player, with custom names (minimum 1, maximum 4). On phones you get a
   single card for player 1.
@@ -63,7 +64,9 @@ it works offline.
 - **Screen wake lock on/off**: the top badge is a switch; the preference is
   saved.
 - **Sounds**: `tap.mp3` on every button, `undo.mp3` when you undo,
-  `new-round.mp3` when a new turn starts from Refresh.
+  `new-round.mp3` when a new turn starts from Refresh, and `game-over.mp3`
+  when a player's threat reaches 50 (once per crossing, also when the increase
+  comes from Refresh or from the quest resolution).
 - State, phase, bookmark, language, notes and history are stored in
   `localStorage` (key `rings-turn-log/v1`): reopen the app and find the game
   where you left it. Notes survive “New game”. Saves from the app's old name
@@ -113,11 +116,13 @@ Texts live in `i18n.js`, logic and structure in `app.js`, the version in
 - `PLAYER_LIMIT` (4) and `PLAYER_NAME_MAX` (18): maximum number of players and
   name length.
 - `HISTORY_LIMIT`: how many undo steps to keep.
-- `THREAT_ALERT`: threshold (50) above which the Threat turns red.
+- `THREAT_ALERT`: threshold (50) above which the Threat turns red and the
+  game-over sound plays once per crossing.
 - `THREAT_MAX`: maximum settable Threat (999).
 - `NOTE_LIMIT`: maximum length of a note (240 characters).
-- `sfx`: audio files and volumes (`tap` 0.45, `undo` 0.7, `round` 0.9). The
-  files `tap.mp3`, `undo.mp3` and `new-round.mp3` are in the project root.
+- `sfx`: audio files and volumes (`tap` 0.45, `undo` 0.7, `round` 0.9,
+  `over` 0.9). The files `tap.mp3`, `undo.mp3`, `new-round.mp3` and
+  `game-over.mp3` are in the project root.
 
 ## Players and tablet mode
 
@@ -130,7 +135,8 @@ Texts live in `i18n.js`, logic and structure in `app.js`, the version in
 - Tap the name to open the rename dialog; an empty name falls back to
   “Player N”.
 - On phones only player 1 is shown, labelled “Threat · Name” when a name is
-  set. Names are managed from the tablet.
+  set. The name is editable on phones too: tap the label to open the rename
+  dialog.
 - Data lives in `state.players`: `[{ id, name, threat, setup }]`. `setup` is
   the starting-threat reminder of each player.
 - 1.0.0 saves (single `minaccia` field) are migrated automatically to the first
@@ -198,13 +204,13 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.3.0";
+self.APP_VERSION = "1.3.1";
 ```
 
 From there:
 
-- `app.js` shows it next to the brand (`Rings Turn Log v1.3.0`);
-- `sw.js` uses it for the cache name (`rings-turn-log-v1.3.0`).
+- `app.js` shows it next to the brand (`Rings Turn Log v1.3.1`);
+- `sw.js` uses it for the cache name (`rings-turn-log-v1.3.1`).
 
 Do not write the version number anywhere else: change `version.js` and
 everything else follows.
@@ -214,7 +220,7 @@ everything else follows.
 - **MAJOR** (`2.0.0`): changes that break existing saves (`localStorage` format,
   notes, history) or radically change how the app is used.
 - **MINOR** (`1.1.0`): new backwards-compatible features.
-- **PATCH** (`1.3.1`): bug fixes and polish, no new features.
+- **PATCH** (`1.3.2`): bug fixes and polish, no new features.
 
 ### When to bump the version
 
@@ -275,7 +281,7 @@ To go back:
 
 1. restore the code with `git revert` of the problematic commit (or start again
    from the previous tag with a new commit);
-2. bump a **PATCH** (e.g. `1.3.1`);
+2. bump a **PATCH** (e.g. `1.3.2`);
 3. add the entry in `CHANGELOG.md` and repeat the release cycle.
 
 ### Quick check
@@ -346,8 +352,12 @@ it is the only way for the lock to work.
   sound start from a touch, so they play correctly. If you hear nothing, check
   the phone volume and the silent switch.
 - Effect volume is set in `app.js` (`sfx`); you can replace `tap.mp3`,
-  `undo.mp3` and `new-round.mp3` keeping the same names. The Undo button uses
-  only `undo.mp3`, without the generic tap on top.
+  `undo.mp3`, `new-round.mp3` and `game-over.mp3` keeping the same names. The
+  Undo button uses only `undo.mp3`, without the generic tap on top.
+- `game-over.mp3` fires once, when a player's threat goes from below 50 to 50 or
+  more; staying above the threshold is silent, going back down and crossing it
+  again plays it again. Undo never plays it, and neither does reopening the app
+  with the threat already high.
 - Fullscreen is **disabled**: the `⛶` button was replaced by the language
   selector. The markup is commented out in `index.html` and the code in
   `app.js` is guarded by `if (el.fullscreenBtn)`, so re-enabling it only takes
@@ -371,7 +381,7 @@ reload.svg  reset.svg  update.svg
 cross-2.svg  plus.svg
 enter-full-screen.svg  exit-full-screen.svg
 willpower.png  threat.png  progress.png
-tap.mp3  undo.mp3  new-round.mp3
+tap.mp3  undo.mp3  new-round.mp3  game-over.mp3
 screenshot.png
 CHANGELOG.md
 README.md
