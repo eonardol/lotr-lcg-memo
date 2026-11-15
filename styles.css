@@ -139,7 +139,12 @@ body.modal-open #rotator {
 }
 
 .icon-rotate {
-  --icon: url("./reload.svg");
+  /* Mostra l'orientamento che si ottiene toccando il tasto. */
+  --icon: url("./screen-landscape.svg");
+}
+
+#rotator[data-rotation="90"] .icon-rotate {
+  --icon: url("./screen-portrait.svg");
 }
 
 .icon-undo {
@@ -1274,7 +1279,7 @@ body.modal-open #rotator {
 }
 
 .panel {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   width: min(360px, 100%);
   padding: 20px;
@@ -1928,6 +1933,88 @@ body.modal-open #rotator {
 
 .compact-height .app {
   gap: 8px;
+}
+
+/* Popup compatti quando l'altezza logica è ridotta: vale anche con la UI
+   ruotata. Servono a tenere il contenuto (e il tasto Chiudi) dentro il bordo
+   del pannello senza dover scorrere l'overlay. */
+.compact-height .overlay {
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+}
+
+.compact-height .panel {
+  padding: 14px 16px;
+}
+
+.compact-height .panel h2 {
+  font-size: 0.95rem;
+}
+
+.compact-height .panel-sub {
+  margin-bottom: 8px;
+  font-size: 0.74rem;
+}
+
+.compact-height .quest-field {
+  gap: 2px 8px;
+  padding: 6px 0;
+}
+
+.compact-height .quest-field:first-of-type {
+  padding-top: 0;
+}
+
+.compact-height .quest-token {
+  width: 24px;
+  height: 24px;
+}
+
+.compact-height .quest-label {
+  font-size: 0.72rem;
+}
+
+.compact-height .quest-stepper .step {
+  flex-basis: 34px;
+  height: 38px;
+  font-size: 1.15rem;
+}
+
+.compact-height .quest-input {
+  height: 38px;
+  font-size: 1.25rem;
+}
+
+.compact-height .quest-result {
+  margin-top: 8px;
+}
+
+.compact-height .quest-progress {
+  gap: 8px;
+  padding: 7px 12px;
+}
+
+.compact-height .quest-token-progress {
+  width: 26px;
+  height: 26px;
+}
+
+.compact-height .quest-progress-value {
+  font-size: 1.6rem;
+}
+
+.compact-height .quest-raise {
+  min-height: 46px;
+  font-size: 0.86rem;
+}
+
+.compact-height .quest-done {
+  min-height: 42px;
+  margin-top: 6px;
+}
+
+.compact-height .quest-lock {
+  margin-top: 6px;
+  font-size: 0.74rem;
 }
 
 .compact-height .counter {

@@ -36,7 +36,8 @@ it works offline.
 - **Combat processes in pop-ups**: “Resolve Enemy Attacks” and “Player Attacks”,
   opened from steps 6.4a and 6.8a.
 - **Quest resolution (3.4)**: the pill under the step opens a pop-up with
-  Willpower and Threat (`−`/`+` buttons and direct entry). If
+  Willpower and Threat (`−`/`+` buttons, direct entry and long-press to repeat
+  fast). If
   `Willpower − Threat` is zero or positive it shows the progress (with a
   **Close** button); if negative it raises every player's threat by that
   amount, with a visual effect, and the pop-up closes itself. After use it
@@ -168,7 +169,8 @@ does not clear them and Undo does not touch them.
 - Step **3.4** has a **“Calculate progress”** pill that opens the resolution
   pop-up.
 - **Willpower** accepts negative values (−999…999), **Threat** stays between 0
-  and 999; both can be changed with `−`/`+` or by typing the number.
+  and 999; both can be changed with `−`/`+` or by typing the number. Press and
+  hold `−`/`+` to repeat fast, with the same timing as Turn and Threat.
 - The result is `Willpower − Threat`:
   - **≥ 0**: shows the progress counter with its own icon (even 0) and, below
     it, the **Close** button;
@@ -204,13 +206,13 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.3.1";
+self.APP_VERSION = "1.3.2";
 ```
 
 From there:
 
-- `app.js` shows it next to the brand (`Rings Turn Log v1.3.1`);
-- `sw.js` uses it for the cache name (`rings-turn-log-v1.3.1`).
+- `app.js` shows it next to the brand (`Rings Turn Log v1.3.2`);
+- `sw.js` uses it for the cache name (`rings-turn-log-v1.3.2`).
 
 Do not write the version number anywhere else: change `version.js` and
 everything else follows.
@@ -220,7 +222,7 @@ everything else follows.
 - **MAJOR** (`2.0.0`): changes that break existing saves (`localStorage` format,
   notes, history) or radically change how the app is used.
 - **MINOR** (`1.1.0`): new backwards-compatible features.
-- **PATCH** (`1.3.2`): bug fixes and polish, no new features.
+- **PATCH** (`1.3.3`): bug fixes and polish, no new features.
 
 ### When to bump the version
 
@@ -246,14 +248,14 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
    terminal:
 
    ```bash
-   git tag -a v1.3.1 -m "v1.3.1"
+   git tag -a v1.3.2 -m "v1.3.2"
    ```
 
 7. Push commits and tag:
 
    ```bash
    git push origin main
-   git push origin v1.3.1
+   git push origin v1.3.2
    # or, if the branch is tracked:
    git push --follow-tags
    ```
@@ -270,7 +272,7 @@ required. Alternatively you can create it from the UI:
 
 In every case the tag must point **exactly at the commit being published**, and
 must be annotated (`-a`) so it keeps author and message. To check: `git show
-v1.3.1` and, in the app, the text next to the brand.
+v1.3.2` and, in the app, the text next to the brand.
 
 ### Rollback
 
@@ -281,7 +283,7 @@ To go back:
 
 1. restore the code with `git revert` of the problematic commit (or start again
    from the previous tag with a new commit);
-2. bump a **PATCH** (e.g. `1.3.2`);
+2. bump a **PATCH** (e.g. `1.3.3`);
 3. add the entry in `CHANGELOG.md` and repeat the release cycle.
 
 ### Quick check
@@ -309,6 +311,8 @@ To go back:
 - Pop-ups open **at the top**, no longer centred.
 - The overlay height follows the visible area (`visualViewport`): when the
   keyboard opens, the note field and the “Add” button stay above it.
+- On short screens (landscape or rotated UI) the panel compacts and never spills
+  outside its border; if the content still does not fit, the overlay scrolls.
 - The same logic works with the UI rotated 90° (axes swapped).
 
 ## Notes on the wake lock
@@ -333,7 +337,8 @@ it is the only way for the lock to work.
   on iOS).
 - The button only switches between **portrait (0°) and landscape (90°)**; there
   are no upside-down rotations, which are useless with the phone propped up or
-  mounted.
+  mounted. Its icon shows the orientation you get by tapping: a landscape screen
+  in portrait, a portrait screen when the UI is rotated.
 - In landscape the logical width and height swap: the UI compacts to stay fully
   visible.
 - The UI has a fixed height in every orientation: the phase stepper and NEXT do
@@ -377,7 +382,7 @@ sw.js
 manifest.webmanifest
 icon.svg  icon-192.png  icon-512.png
 bookmark.svg  bookmark-filled.svg  pencil-1.svg  trash.svg
-reload.svg  reset.svg  update.svg
+screen-portrait.svg  screen-landscape.svg  reset.svg  update.svg
 cross-2.svg  plus.svg
 enter-full-screen.svg  exit-full-screen.svg
 willpower.png  threat.png  progress.png
@@ -385,6 +390,8 @@ tap.mp3  undo.mp3  new-round.mp3  game-over.mp3
 screenshot.png
 CHANGELOG.md
 README.md
+AGENTS.md
+CLAUDE.md
 .gitignore
 .nojekyll
 ```
@@ -392,3 +399,8 @@ README.md
 UI icons are [Radix Icons](https://www.radix-ui.com/icons) (MIT): only the SVGs
 actually used are in the root, while the full `icons/` folder is excluded by
 `.gitignore`.
+
+`AGENTS.md` documents the rules for coding agents (`CLAUDE.md` simply points to
+it). The most important one: the app is already released, so the
+`localStorage` document is a public contract — old saves must keep loading, and
+any change to its format needs backward compatibility or an explicit migration.
