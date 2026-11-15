@@ -1,8 +1,8 @@
 {
-  "name": "Turno · LOTR LCG",
-  "short_name": "Turno LCG",
+  "name": "Rings Turn Log",
+  "short_name": "Rings Turn Log",
   "id": "./",
-  "description": "Contatori e tracker delle fasi per Il Signore degli Anelli LCG.",
+  "description": "Rings Turn Log: contatori e tracker delle fasi per Il Signore degli Anelli LCG.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",

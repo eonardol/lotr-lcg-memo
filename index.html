@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Turno · LOTR LCG</title>
-  <meta name="description" content="Supporto tabellone per Il Signore degli Anelli LCG: turno, minaccia e fasi.">
+  <title>Rings Turn Log · Turno</title>
+  <meta name="description" content="Rings Turn Log: supporto tabellone per Il Signore degli Anelli LCG — turno, minaccia e fasi.">
   <meta name="theme-color" content="#0d0b08">
   <meta name="color-scheme" content="dark">
 
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Turno LCG">
+  <meta name="apple-mobile-web-app-title" content="Rings Turn Log">
 
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -22,28 +22,24 @@
   <div id="rotator" data-rotation="0">
     <main class="app">
       <header class="top">
-        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> LOTR LCG<span class="brand-version" id="appVersion"></span></span>
+        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> Rings Turn Log<span class="brand-version" id="appVersion"></span></span>
 
         <div class="top-actions">
           <button class="icon-action" id="rotateBtn" type="button"
                   aria-label="Ruota l'interfaccia in orizzontale" title="Ruota in orizzontale">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 11a8 8 0 1 0-2.3 5.7"/>
-              <path d="M20 5v6h-6"/>
-            </svg>
+            <span class="icon-mask icon-rotate" aria-hidden="true"></span>
           </button>
 
+          <button class="icon-action lang-toggle" id="langBtn" type="button"
+                  aria-label="Lingua: italiano. Passa a English" title="Cambia lingua: English">IT</button>
+
+          <!-- Pulsante schermo intero: disattivato su richiesta. Per riattivarlo
+               basta togliere il commento e il selettore lingua qui sopra.
           <button class="icon-action" id="fullscreenBtn" type="button"
                   aria-label="Schermo intero" aria-pressed="false" title="Schermo intero">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
-              <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
-              <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
-              <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
-            </svg>
+            <span class="icon-mask icon-fullscreen" aria-hidden="true"></span>
           </button>
+          -->
 
           <button class="wake" id="wakeBadge" type="button" data-state="off" aria-pressed="true">
             <span class="wake-dot" aria-hidden="true"></span>
@@ -52,42 +48,42 @@
         </div>
       </header>
 
-      <section class="counters" aria-label="Contatori">
+      <section class="counters" aria-label="Contatori" data-i18n-aria="ui.counters">
         <article class="counter counter-turno">
-          <h2 class="counter-label" id="turnoLabel">Turno</h2>
+          <h2 class="counter-label" id="turnoLabel" data-i18n="ui.turn">Turno</h2>
           <div class="counter-row">
-            <button class="step" id="turnoMinus" type="button" aria-label="Diminuisci turno">−</button>
+            <button class="step" id="turnoMinus" type="button" aria-label="Diminuisci turno" data-i18n-aria="ui.turnMinus">−</button>
             <span class="counter-value" id="turnoValue" aria-labelledby="turnoLabel" aria-live="polite">1</span>
-            <button class="step" id="turnoPlus" type="button" aria-label="Aumenta turno">+</button>
+            <button class="step" id="turnoPlus" type="button" aria-label="Aumenta turno" data-i18n-aria="ui.turnPlus">+</button>
           </div>
         </article>
 
         <div class="players" id="players"></div>
       </section>
 
-      <section class="phase" aria-label="Fase corrente">
-        <div class="stepper" id="stepper" aria-label="Salta a una fase"></div>
+      <section class="phase" aria-label="Fase corrente" data-i18n-aria="ui.currentPhase">
+        <div class="stepper" id="stepper" aria-label="Salta a una fase" data-i18n-aria="ui.stepper"></div>
 
         <div class="phase-card" id="phaseCard">
-          <p class="phase-eyebrow">Fase <span id="phaseNum">1</span> di 7</p>
+          <p class="phase-eyebrow" id="phaseEyebrow">Fase 1 di 7</p>
           <h2 class="phase-name" id="phaseName" aria-live="polite">Risorsa</h2>
           <div class="step-list" id="phaseSteps"></div>
         </div>
       </section>
 
       <button class="next" id="next" type="button">
-        <span class="next-main">Avanti</span>
+        <span class="next-main" data-i18n="ui.next">Avanti</span>
         <span class="next-hint" id="nextHint"></span>
       </button>
 
       <footer class="bottom">
         <button id="undo" type="button" disabled>
-          <span aria-hidden="true">↶</span>
-          <span id="undoLabel">Annulla</span>
+          <span class="icon-mask icon-undo" aria-hidden="true"></span>
+          <span id="undoLabel" data-i18n="ui.undo">Annulla</span>
         </button>
         <button id="reset" type="button">
-          <span aria-hidden="true">↺</span>
-          <span>Nuova partita</span>
+          <span class="icon-mask icon-restart" aria-hidden="true"></span>
+          <span data-i18n="ui.newGame">Nuova partita</span>
         </button>
       </footer>
     </main>
@@ -95,11 +91,67 @@
     <div class="overlay" id="processOverlay" hidden>
       <div class="panel panel-process" role="dialog" aria-modal="true" aria-labelledby="processTitle">
         <div class="panel-head">
-          <h2 id="processTitle">Processo</h2>
-          <button class="icon-btn" id="processClose" type="button" aria-label="Chiudi il processo">✕</button>
+          <h2 id="processTitle" data-i18n="ui.processTitle">Processo</h2>
+          <button class="icon-btn" id="processClose" type="button" aria-label="Chiudi il processo" data-i18n-aria="ui.closeProcess"><span class="icon-mask icon-close" aria-hidden="true"></span></button>
         </div>
-        <p class="panel-sub">Risoluzione del processo di combattimento.</p>
+        <p class="panel-sub" data-i18n="ui.processSub">Risoluzione del processo di combattimento.</p>
         <div class="step-list process-steps" id="processList"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="questOverlay" hidden>
+      <div class="panel panel-quest" role="dialog" aria-modal="true" aria-labelledby="questTitle">
+        <div class="panel-head">
+          <h2 id="questTitle" data-i18n="ui.questTitle">Risoluzione dell'impresa</h2>
+          <button class="icon-btn" id="questClose" type="button"
+                  aria-label="Chiudi la risoluzione dell'impresa"
+                  data-i18n-aria="ui.questClose"><span class="icon-mask icon-close" aria-hidden="true"></span></button>
+        </div>
+        <p class="panel-sub" data-i18n="ui.questSub">Progressi = Volontà − Minaccia</p>
+
+        <div class="quest-field">
+          <img class="quest-token" src="./willpower.png" alt="" aria-hidden="true">
+          <span class="quest-label" data-i18n="ui.questWillpower">Forza di Volontà</span>
+          <div class="quest-stepper">
+            <button class="step quest-step" id="questWillpowerMinus" type="button"
+                    aria-label="Diminuisci la Forza di Volontà">−</button>
+            <input class="quest-input" id="questWillpowerInput" type="text"
+                   inputmode="numeric" autocomplete="off" enterkeyhint="done"
+                   aria-label="Forza di Volontà" data-i18n-aria="ui.questWillpower"
+                   value="0">
+            <button class="step quest-step" id="questWillpowerPlus" type="button"
+                    aria-label="Aumenta la Forza di Volontà">+</button>
+          </div>
+        </div>
+
+        <div class="quest-field">
+          <img class="quest-token" src="./threat.png" alt="" aria-hidden="true">
+          <span class="quest-label" data-i18n="ui.questThreat">Forza di Minaccia</span>
+          <div class="quest-stepper">
+            <button class="step quest-step" id="questThreatMinus" type="button"
+                    aria-label="Diminuisci la Forza di Minaccia">−</button>
+            <input class="quest-input" id="questThreatInput" type="text"
+                   inputmode="numeric" autocomplete="off" enterkeyhint="done"
+                   aria-label="Forza di Minaccia" data-i18n-aria="ui.questThreat"
+                   value="0">
+            <button class="step quest-step" id="questThreatPlus" type="button"
+                    aria-label="Aumenta la Forza di Minaccia">+</button>
+          </div>
+        </div>
+
+        <div class="quest-result" id="questResult" aria-live="polite">
+          <div class="quest-progress" id="questProgress">
+            <img class="quest-token quest-token-progress" src="./progress.png" alt="" aria-hidden="true">
+            <span class="quest-progress-label" data-i18n="ui.questProgress">Progressi</span>
+            <span class="quest-progress-value" id="questProgressValue">0</span>
+          </div>
+          <button class="quest-raise" id="questRaise" type="button" hidden>
+            <img class="quest-token quest-token-threat" src="./threat.png" alt="" aria-hidden="true">
+            <span id="questRaiseLabel"></span>
+          </button>
+          <button class="quest-done" id="questDone" type="button" data-i18n="ui.questDone">Chiudi</button>
+        </div>
+        <p class="quest-lock" id="questLock" hidden></p>
       </div>
     </div>
 
@@ -107,19 +159,20 @@
       <div class="panel panel-notes" role="dialog" aria-modal="true" aria-labelledby="notesTitle">
         <div class="panel-head">
           <h2 id="notesTitle">Note</h2>
-          <button class="icon-btn" id="notesClose" type="button" aria-label="Chiudi le note">✕</button>
+          <button class="icon-btn" id="notesClose" type="button" aria-label="Chiudi le note" data-i18n-aria="ui.closeNotes"><span class="icon-mask icon-close" aria-hidden="true"></span></button>
         </div>
         <p class="panel-sub" id="notesSub">Promemoria. Restano anche con “Nuova partita”.</p>
 
         <div class="notes-list" id="notesList"></div>
-        <p class="notes-empty" id="notesEmpty" hidden>Nessuna nota in questo punto.</p>
+        <p class="notes-empty" id="notesEmpty" hidden data-i18n="ui.notesEmpty">Nessuna nota in questo punto.</p>
 
         <form class="notes-composer" id="notesForm">
           <textarea class="notes-input" id="notesInput" rows="2" maxlength="240"
-                    placeholder="Scrivi una nota per questo punto…" aria-label="Nuova nota"></textarea>
+                    placeholder="Scrivi una nota per questo punto…" aria-label="Nuova nota"
+                    data-i18n-placeholder="ui.notePlaceholder" data-i18n-aria="ui.noteAria"></textarea>
           <div class="composer-row">
             <span class="char-count" id="notesCount">0/240</span>
-            <button class="primary" id="notesAdd" type="submit" disabled>Aggiungi</button>
+            <button class="primary" id="notesAdd" type="submit" disabled data-i18n="ui.add">Aggiungi</button>
           </div>
         </form>
       </div>
@@ -127,43 +180,46 @@
 
     <div class="overlay" id="threatOverlay" hidden>
       <div class="panel" role="dialog" aria-modal="true" aria-labelledby="threatTitle">
-        <h2 id="threatTitle">Imposta Minaccia</h2>
-        <p class="panel-sub" id="threatSub">Valore tra 0 e 999.</p>
+        <h2 id="threatTitle" data-i18n="ui.threatTitle">Imposta Minaccia</h2>
+        <p class="panel-sub" id="threatSub" data-i18n="ui.threatSub">Valore tra 0 e 999.</p>
         <input class="num-input" id="threatInput" type="text" inputmode="numeric"
-               autocomplete="off" enterkeyhint="done" aria-label="Valore della minaccia" value="30">
+               autocomplete="off" enterkeyhint="done" aria-label="Valore della minaccia"
+               data-i18n-aria="ui.threatInputAria" value="30">
         <div class="panel-actions">
-          <button class="ghost" id="threatCancel" type="button">Annulla</button>
-          <button class="primary" id="threatConfirm" type="button">Imposta</button>
+          <button class="ghost" id="threatCancel" type="button" data-i18n="ui.cancel">Annulla</button>
+          <button class="primary" id="threatConfirm" type="button" data-i18n="ui.set">Imposta</button>
         </div>
       </div>
     </div>
 
     <div class="overlay" id="nameOverlay" hidden>
       <div class="panel" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
-        <h2 id="nameTitle">Nome giocatore</h2>
-        <p class="panel-sub">Facoltativo: se vuoto resta “Giocatore N”.</p>
+        <h2 id="nameTitle" data-i18n="ui.nameTitle">Nome giocatore</h2>
+        <p class="panel-sub" data-i18n="ui.nameSub">Facoltativo: se vuoto resta “Giocatore N”.</p>
         <input class="text-input" id="nameInput" type="text" maxlength="18"
-               autocomplete="off" enterkeyhint="done" aria-label="Nome del giocatore">
+               autocomplete="off" enterkeyhint="done" aria-label="Nome del giocatore"
+               data-i18n-aria="ui.nameInputAriaGeneric">
         <div class="panel-actions">
-          <button class="ghost" id="nameCancel" type="button">Annulla</button>
-          <button class="primary" id="nameConfirm" type="button">Salva</button>
+          <button class="ghost" id="nameCancel" type="button" data-i18n="ui.cancel">Annulla</button>
+          <button class="primary" id="nameConfirm" type="button" data-i18n="ui.save">Salva</button>
         </div>
       </div>
     </div>
 
     <div class="overlay" id="resetOverlay" hidden>
       <div class="panel" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
-        <h2 id="resetTitle">Nuova partita</h2>
-        <p class="panel-sub">Azzera Turno e fase e riporta a 30 la Minaccia di ogni giocatore. Nomi e giocatori restano. Potrai sempre recuperare con ↶.</p>
+        <h2 id="resetTitle" data-i18n="ui.newGame">Nuova partita</h2>
+        <p class="panel-sub" data-i18n="ui.newGameSub">Azzera Turno e fase e riporta a 30 la Minaccia di ogni giocatore. Nomi e giocatori restano. Potrai sempre recuperare con ↶.</p>
         <div class="panel-actions">
-          <button class="ghost" id="resetCancel" type="button">Annulla</button>
-          <button class="primary danger" id="resetConfirm" type="button">Azzera</button>
+          <button class="ghost" id="resetCancel" type="button" data-i18n="ui.cancel">Annulla</button>
+          <button class="primary danger" id="resetConfirm" type="button" data-i18n="ui.resetConfirm">Azzera</button>
         </div>
       </div>
     </div>
   </div>
 
   <script src="./version.js"></script>
+  <script src="./i18n.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

@@ -2,18 +2,33 @@
 importScripts("./version.js");
 
 const VERSION = self.APP_VERSION || "dev";
-const CACHE = `lotr-lcg-v${VERSION}`;
+const CACHE = `rings-turn-log-v${VERSION}`;
 
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./i18n.js",
   "./version.js",
   "./manifest.webmanifest",
   "./icon.svg",
   "./icon-192.png",
   "./icon-512.png",
+  "./bookmark.svg",
+  "./bookmark-filled.svg",
+  "./pencil-1.svg",
+  "./trash.svg",
+  "./reload.svg",
+  "./reset.svg",
+  "./update.svg",
+  "./cross-2.svg",
+  "./plus.svg",
+  "./enter-full-screen.svg",
+  "./exit-full-screen.svg",
+  "./willpower.png",
+  "./threat.png",
+  "./progress.png",
   "./tap.mp3",
   "./undo.mp3",
   "./new-round.mp3",

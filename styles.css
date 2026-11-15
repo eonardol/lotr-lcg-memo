@@ -11,6 +11,8 @@
   --muted: #9c8f78;
   --danger: #c05248;
   --radius: 18px;
+  --note-dot: #a78bfa;
+  --bookmark-dot: #f2c94c;
 }
 
 * {
@@ -102,6 +104,68 @@ body.modal-open #rotator {
   padding: calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 10px);
 }
 
+/* ---------- icone (Radix, file SVG in root) ---------- */
+
+.icon-mask {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon);
+  mask-image: var(--icon);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.icon-bookmark {
+  --icon: url("./bookmark.svg");
+}
+
+.step-bookmark[aria-pressed="true"] .icon-bookmark {
+  --icon: url("./bookmark-filled.svg");
+}
+
+.icon-pencil {
+  --icon: url("./pencil-1.svg");
+}
+
+.icon-trash {
+  --icon: url("./trash.svg");
+}
+
+.icon-rotate {
+  --icon: url("./reload.svg");
+}
+
+.icon-undo {
+  --icon: url("./reset.svg");
+}
+
+.icon-restart {
+  --icon: url("./update.svg");
+}
+
+.icon-close {
+  --icon: url("./cross-2.svg");
+}
+
+.icon-plus {
+  --icon: url("./plus.svg");
+}
+
+.icon-fullscreen {
+  --icon: url("./enter-full-screen.svg");
+}
+
+.icon-action[aria-pressed="true"] .icon-fullscreen {
+  --icon: url("./exit-full-screen.svg");
+}
+
 /* ---------- header ---------- */
 
 .top {
@@ -139,7 +203,7 @@ body.modal-open #rotator {
   appearance: none;
 }
 
-.icon-action svg {
+.icon-action .icon-mask {
   width: 17px;
   height: 17px;
   display: block;
@@ -160,11 +224,17 @@ body.modal-open #rotator {
   background: rgba(201, 162, 39, 0.12);
 }
 
+.lang-toggle {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
 .brand {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -259,6 +329,42 @@ body.modal-open #rotator {
    su tablet si dispongono in riga e vanno a capo da soli. */
 .players {
   display: contents;
+}
+
+.tablet .step-pill {
+  flex-direction: column;
+  gap: 0;
+  height: 48px;
+  padding: 3px 2px 4px;
+}
+
+.tablet .step-pill-num {
+  font-size: 0.98rem;
+  line-height: 1.1;
+}
+
+.tablet .step-pill-name {
+  display: block;
+  max-width: 100%;
+  font-size: 0.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tablet .step-bookmark {
+  width: 36px;
+  height: 36px;
+}
+
+.tablet .step-bookmark .icon-mask {
+  width: 16px;
+  height: 16px;
 }
 
 .tablet .counters {
@@ -361,6 +467,11 @@ body.modal-open #rotator {
   display: none;
 }
 
+.player-remove .icon-mask {
+  width: 11px;
+  height: 11px;
+}
+
 .player-remove:active {
   color: #ff8b7e;
   background: #221a13;
@@ -383,8 +494,8 @@ body.modal-open #rotator {
 }
 
 .counter-add .add-mark {
-  font-size: 1.35rem;
-  line-height: 1;
+  width: 22px;
+  height: 22px;
   color: var(--gold);
 }
 
@@ -613,6 +724,77 @@ body.modal-open #rotator {
   animation: pop 0.26s ease-out;
 }
 
+/* Effetto visivo quando la risoluzione dell'impresa aumenta la Minaccia. */
+@keyframes threat-hit {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192, 82, 72, 0);
+    transform: translateX(0);
+  }
+  20% {
+    box-shadow: 0 0 0 3px rgba(192, 82, 72, 0.55);
+    transform: translateX(-2px);
+  }
+  45% {
+    transform: translateX(2px);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(192, 82, 72, 0);
+    transform: translateX(-1px);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192, 82, 72, 0);
+    transform: translateX(0);
+  }
+}
+
+.threat-hit {
+  animation: threat-hit 0.55s ease-out;
+}
+
+.threat-float {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  z-index: 2;
+  padding: 1px 7px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #ff8b7e;
+  background: rgba(20, 14, 10, 0.92);
+  border: 1px solid rgba(192, 82, 72, 0.6);
+  border-radius: 999px;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  animation: threat-float 0.9s ease-out forwards;
+}
+
+@keyframes threat-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .threat-hit {
+    animation: none;
+  }
+
+  .threat-float {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, -24px);
+  }
+}
+
 /* ---------- phases ---------- */
 
 .phase {
@@ -634,6 +816,10 @@ body.modal-open #rotator {
   flex: 1 1 0;
   min-width: 0;
   height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 0;
   font-family: inherit;
   font-size: 0.95rem;
@@ -645,6 +831,15 @@ body.modal-open #rotator {
   border-radius: 12px;
   cursor: pointer;
   transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.step-pill-num {
+  line-height: 1;
+}
+
+/* Su telefono il nome della fase resta nascosto: c'è solo il numero. */
+.step-pill-name {
+  display: none;
 }
 
 .step-pill:focus-visible {
@@ -664,22 +859,29 @@ body.modal-open #rotator {
   box-shadow: 0 0 18px rgba(201, 162, 39, 0.22);
 }
 
-.step-pill.has-notes::after {
+/* Note in viola (in alto a destra), segnalibro in giallo (in basso a
+   destra): restano distinguibili anche sulla pillola corrente dorata. */
+.step-pill.has-notes::before,
+.step-pill.has-bookmark::after {
   content: "";
   position: absolute;
-  top: 5px;
   right: 6px;
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px rgba(232, 198, 90, 0.6);
+  box-shadow: 0 0 6px currentColor, 0 0 0 1px rgba(13, 11, 8, 0.6);
 }
 
-.step-pill.current.has-notes::after {
-  background: #1a1408;
-  box-shadow: none;
-  opacity: 0.7;
+.step-pill.has-notes::before {
+  top: 5px;
+  color: var(--note-dot);
+  background: var(--note-dot);
+}
+
+.step-pill.has-bookmark::after {
+  bottom: 5px;
+  color: var(--bookmark-dot);
+  background: var(--bookmark-dot);
 }
 
 .phase-card {
@@ -729,6 +931,60 @@ body.modal-open #rotator {
   align-items: flex-start;
   gap: 8px;
   padding: 4px 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease;
+}
+
+.step-block:active {
+  background: rgba(201, 162, 39, 0.08);
+}
+
+/* Riga con il segnalibro: barra dorata e sfondo tenue. */
+.step-block.bookmarked {
+  background: linear-gradient(90deg, rgba(242, 201, 76, 0.1), transparent 72%);
+  box-shadow: inset 2px 0 0 var(--bookmark-dot);
+  border-radius: 0 8px 8px 0;
+}
+
+.step-bookmark {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  margin: -3px -2px -3px 0;
+  padding: 0;
+  color: #8d7f63;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: color 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+}
+
+.step-bookmark .icon-mask {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.step-bookmark:active {
+  background: rgba(201, 162, 39, 0.14);
+}
+
+.step-bookmark:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.step-bookmark[aria-pressed="true"] {
+  color: var(--bookmark-dot);
+  opacity: 1;
+  background: rgba(242, 201, 76, 0.12);
 }
 
 .step-num {
@@ -797,6 +1053,26 @@ body.modal-open #rotator {
   outline-offset: 2px;
 }
 
+.quest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #e8e2c8;
+  background: rgba(201, 162, 39, 0.16);
+  border-color: #8a6f2a;
+}
+
+.quest-btn:active {
+  background: rgba(201, 162, 39, 0.32);
+}
+
+.quest-btn-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  border-radius: 50%;
+}
+
 .gap {
   display: flex;
   flex-direction: column;
@@ -853,6 +1129,11 @@ body.modal-open #rotator {
   border: 1px dashed #3a2f1e;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.gap-add .icon-mask {
+  width: 13px;
+  height: 13px;
 }
 
 .gap-add:active {
@@ -939,6 +1220,11 @@ body.modal-open #rotator {
   border-radius: 12px;
   cursor: pointer;
   overflow: hidden;
+}
+
+.bottom button .icon-mask {
+  width: 14px;
+  height: 14px;
 }
 
 .bottom button:active {
@@ -1139,6 +1425,194 @@ body.modal-open #rotator {
   margin: 2px 0;
 }
 
+/* ---------- risoluzione dell'impresa ---------- */
+
+.panel-quest {
+  width: min(420px, 100%);
+}
+
+#questTitle {
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.quest-field {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.quest-field:first-of-type {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.quest-token {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  display: block;
+  border-radius: 50%;
+}
+
+.quest-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.quest-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quest-stepper .step {
+  flex: 0 0 38px;
+  height: 44px;
+  font-size: 1.35rem;
+  border-radius: 10px;
+  touch-action: manipulation;
+}
+
+.quest-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ink);
+  background: #0e0c09;
+  border: 1px solid #4b3d18;
+  border-radius: 10px;
+  -moz-appearance: textfield;
+}
+
+.quest-input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.quest-input:disabled {
+  opacity: 0.62;
+}
+
+.quest-result {
+  margin-top: 12px;
+}
+
+.quest-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(74, 110, 54, 0.18);
+  border: 1px solid #4c6a3a;
+  border-radius: 14px;
+}
+
+.quest-token-progress {
+  width: 32px;
+  height: 32px;
+}
+
+.quest-progress-label {
+  flex: 1 1 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b9cf9b;
+}
+
+.quest-progress-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #d7e8b8;
+}
+
+.quest-raise {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #ffe0d9;
+  background: linear-gradient(180deg, #a4433a, #7d2f28);
+  border: 1px solid #c05248;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.quest-raise .quest-token {
+  width: 26px;
+  height: 26px;
+}
+
+.quest-raise:active {
+  background: linear-gradient(180deg, #b74d43, #8c352d);
+}
+
+.quest-raise:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.quest-raise:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.quest-done {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.quest-done:active {
+  background: #1c1710;
+}
+
+.quest-done:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.quest-lock {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--muted);
+}
+
 .panel-head {
   display: flex;
   align-items: center;
@@ -1164,6 +1638,11 @@ body.modal-open #rotator {
   border: 1px solid var(--line);
   border-radius: 10px;
   cursor: pointer;
+}
+
+.icon-btn .icon-mask {
+  width: 15px;
+  height: 15px;
 }
 
 .icon-btn:active {
@@ -1255,7 +1734,7 @@ body.modal-open #rotator {
   cursor: pointer;
 }
 
-.note-icon svg {
+.note-icon .icon-mask {
   width: 16px;
   height: 16px;
   display: block;
@@ -1381,6 +1860,16 @@ body.modal-open #rotator {
 
 /* ---------- small / short layouts (classi impostate da app.js) ---------- */
 
+/* Il nome lungo dell'app chiede spazio: sotto i 380 px si compatta. */
+.tight-head .brand {
+  font-size: 0.68rem;
+}
+
+.tight-head .brand-version {
+  margin-left: 4px;
+  font-size: 0.55rem;
+}
+
 .narrow .app {
   padding-left: 10px;
   padding-right: 10px;
@@ -1398,12 +1887,17 @@ body.modal-open #rotator {
   display: none;
 }
 
+.narrow .brand {
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+}
+
 .narrow .icon-action {
   width: 29px;
   height: 29px;
 }
 
-.narrow .icon-action svg {
+.narrow .icon-action .icon-mask {
   width: 15px;
   height: 15px;
 }
@@ -1458,6 +1952,14 @@ body.modal-open #rotator {
 
 .compact-height .step-pill {
   height: 34px;
+}
+
+.tablet.compact-height .step-pill {
+  height: 40px;
+}
+
+.tablet.compact-height .step-pill-name {
+  font-size: 0.48rem;
 }
 
 .compact-height .phase-name {
@@ -1534,6 +2036,21 @@ body.modal-open #rotator {
 .very-short .step-pill {
   height: 30px;
   font-size: 0.82rem;
+}
+
+.very-short .step-pill-name {
+  display: none;
+}
+
+.very-short .step-bookmark {
+  width: 26px;
+  height: 26px;
+  margin: -2px -2px -2px 0;
+}
+
+.very-short .step-bookmark .icon-mask {
+  width: 13px;
+  height: 13px;
 }
 
 .very-short .phase {
