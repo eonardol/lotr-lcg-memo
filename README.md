@@ -390,6 +390,8 @@ tap.mp3  undo.mp3  new-round.mp3  game-over.mp3
 screenshot.png
 CHANGELOG.md
 README.md
+AGENTS.md
+CLAUDE.md
 .gitignore
 .nojekyll
 ```
@@ -397,3 +399,8 @@ README.md
 UI icons are [Radix Icons](https://www.radix-ui.com/icons) (MIT): only the SVGs
 actually used are in the root, while the full `icons/` folder is excluded by
 `.gitignore`.
+
+`AGENTS.md` documents the rules for coding agents (`CLAUDE.md` simply points to
+it). The most important one: the app is already released, so the
+`localStorage` document is a public contract — old saves must keep loading, and
+any change to its format needs backward compatibility or an explicit migration.
