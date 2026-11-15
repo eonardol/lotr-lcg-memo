@@ -80,7 +80,7 @@ self.I18N = {
       "6.8.4": "Fine dell'attacco del giocatore. Se il giocatore attivo deve risolvere altri attacchi del giocatore, ritornare a 6.8a. Altrimenti, proseguire con 6.9",
     },
     ui: {
-      appTitle: "Rings Turn Log · Turno",
+      appTitle: "Rings Turn Log",
       appDescription:
         "Rings Turn Log: supporto tabellone per Il Signore degli Anelli LCG — turno, minaccia e fasi.",
       counters: "Contatori",
@@ -284,7 +284,7 @@ self.I18N = {
       "6.8.4": "Player attack ends. If active player has more player attacks to resolve, return to 6.8a. Otherwise, proceed to 6.9",
     },
     ui: {
-      appTitle: "Rings Turn Log · Turn",
+      appTitle: "Rings Turn Log",
       appDescription:
         "Rings Turn Log: game board companion for The Lord of the Rings LCG — turn, threat and phases.",
       counters: "Counters",
