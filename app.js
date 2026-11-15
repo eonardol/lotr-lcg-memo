@@ -37,7 +37,7 @@
         actionWindow("w-2"),
         step("3.3"),
         actionWindow("w-3"),
-        step("3.4"),
+        step("3.4", { quest: true }),
         actionWindow("w-4"),
         step("3.5"),
       ],
@@ -235,6 +235,10 @@
       el.processTitle.textContent = processName(activeProcess);
       renderProcessList();
     }
+    if (!el.questOverlay.hidden) {
+      syncQuestInputs();
+      updateQuestResult();
+    }
     if (threatTargetId) {
       const index = playerIndex(threatTargetId);
       if (index !== -1) {
@@ -276,7 +280,10 @@
     vibrate(6);
   }
 
-  const STORAGE_KEY = "lotr-lcg-memo/v1";
+  const STORAGE_KEY = "rings-turn-log/v1";
+  // Chiave del vecchio nome dell'app: i salvataggi esistenti vengono letti
+  // una volta e riscritti sotto la nuova chiave.
+  const LEGACY_STORAGE_KEY = "lotr-lcg-memo/v1";
   const HISTORY_LIMIT = 30;
   const NOTE_LIMIT = 240;
   const NOTES_PER_GAP = 30;
@@ -314,6 +321,20 @@
     processTitle: $("processTitle"),
     processClose: $("processClose"),
     processList: $("processList"),
+    questOverlay: $("questOverlay"),
+    questClose: $("questClose"),
+    questWillpowerInput: $("questWillpowerInput"),
+    questWillpowerMinus: $("questWillpowerMinus"),
+    questWillpowerPlus: $("questWillpowerPlus"),
+    questThreatInput: $("questThreatInput"),
+    questThreatMinus: $("questThreatMinus"),
+    questThreatPlus: $("questThreatPlus"),
+    questProgress: $("questProgress"),
+    questProgressValue: $("questProgressValue"),
+    questRaise: $("questRaise"),
+    questRaiseLabel: $("questRaiseLabel"),
+    questDone: $("questDone"),
+    questLock: $("questLock"),
     notesOverlay: $("notesOverlay"),
     notesTitle: $("notesTitle"),
     notesSub: $("notesSub"),
@@ -343,6 +364,8 @@
   const PLAYER_NAME_MAX = 18;
   const THREAT_DEFAULT = 30;
   const THREAT_MAX = 999;
+  const WILLPOWER_MIN = -999;
+  const WILLPOWER_MAX = 999;
 
   const makePlayer = (name = "", setup = false) => ({
     id: makeId(),
@@ -351,11 +374,14 @@
     setup,
   });
 
+  const makeQuest = () => ({ willpower: 0, threat: 0, applied: false });
+
   const initialState = () => ({
     turno: 1,
     fase: 0,
     players: [makePlayer()],
     bookmark: null,
+    quest: makeQuest(),
   });
 
   /* ---------- audio ---------- */
@@ -439,6 +465,24 @@
     return { container, step: stepId };
   }
 
+  function sanitizeQuest(raw) {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const willpower = Math.floor(Number(source.willpower));
+    const threat = Math.floor(Number(source.threat));
+    const value = Number.isFinite(willpower)
+      ? Math.min(WILLPOWER_MAX, Math.max(WILLPOWER_MIN, willpower))
+      : 0;
+    const staging = Number.isFinite(threat)
+      ? Math.min(THREAT_MAX, Math.max(0, threat))
+      : 0;
+    return {
+      willpower: value,
+      threat: staging,
+      // Lo stato "applicato" ha senso solo se la Minaccia supera la Volontà.
+      applied: Boolean(source.applied) && value < staging,
+    };
+  }
+
   function sanitizeActionLabel(raw) {
     if (typeof raw === "string") return raw;
     if (raw && typeof raw.key === "string") {
@@ -480,6 +524,7 @@
       fase: Number.isFinite(fase) ? Math.min(LAST_PHASE, Math.max(0, fase)) : 0,
       players,
       bookmark: sanitizeBookmark(raw && raw.bookmark),
+      quest: sanitizeQuest(raw && raw.quest),
     };
   }
 
@@ -489,6 +534,7 @@
       fase: source.fase,
       players: source.players.map((player) => ({ ...player })),
       bookmark: source.bookmark ? { ...source.bookmark } : null,
+      quest: source.quest ? { ...source.quest } : makeQuest(),
     };
   }
 
@@ -639,7 +685,9 @@
 
   function load() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      // Prima la chiave nuova, poi quella del vecchio nome dell'app.
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) raw = localStorage.getItem(LEGACY_STORAGE_KEY);
       if (!raw) return;
       const data = JSON.parse(raw);
       if (!data || typeof data !== "object") return;
@@ -661,6 +709,8 @@
       if ([90, 270].includes(Number(data.rotation))) {
         rotation = 90;
       }
+      // Migrazione: riscrive subito i dati sotto la chiave nuova.
+      if (!localStorage.getItem(STORAGE_KEY)) save();
     } catch (error) {
       /* storage non disponibile: si continua senza persistenza */
     }
@@ -1061,6 +1111,7 @@
         body.appendChild(text);
 
         if (block.process) body.appendChild(processButton(block.process));
+        if (block.quest) body.appendChild(questButton());
 
         const bookmarked = isBookmarked(container, block.id);
         row.classList.toggle("bookmarked", bookmarked);
@@ -1115,6 +1166,18 @@
       t("ui.openProcessAria", { name: processName(kind) })
     );
     button.addEventListener("click", () => openProcess(kind));
+    return button;
+  }
+
+  function questButton() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "process-btn quest-btn";
+    button.innerHTML =
+      '<img class="quest-btn-icon" src="./progress.png" alt="" aria-hidden="true">' +
+      `<span>${t("ui.questOpen")}</span>`;
+    button.setAttribute("aria-label", t("ui.questOpenAria"));
+    button.addEventListener("click", openQuest);
     return button;
   }
 
@@ -1309,6 +1372,8 @@
         acceptThreatSetup();
         state.turno = nextTurno;
         state.fase = 0;
+        // Nuovo round: la risoluzione dell'impresa riparte da zero.
+        state.quest = makeQuest();
         // Ristoro: +1 Minaccia a tutti i giocatori.
         state.players.forEach((player) => {
           player.threat = Math.min(THREAT_MAX, player.threat + 1);
@@ -1547,6 +1612,159 @@
     closeOverlay(el.processOverlay);
   }
 
+  /* ---------- risoluzione dell'impresa ---------- */
+
+  function questDiff() {
+    return state.quest.willpower - state.quest.threat;
+  }
+
+  function clampWillpower(value) {
+    return Math.min(WILLPOWER_MAX, Math.max(WILLPOWER_MIN, value));
+  }
+
+  function clampQuestThreat(value) {
+    return Math.min(THREAT_MAX, Math.max(0, value));
+  }
+
+  function syncQuestInputs() {
+    el.questWillpowerInput.value = String(state.quest.willpower);
+    el.questThreatInput.value = String(state.quest.threat);
+  }
+
+  function setQuestValue(field, value, syncInputs) {
+    if (state.quest.applied) return;
+    if (field === "willpower") {
+      state.quest.willpower = clampWillpower(value);
+    } else {
+      state.quest.threat = clampQuestThreat(value);
+    }
+    save();
+    if (syncInputs) syncQuestInputs();
+    updateQuestResult();
+  }
+
+  function updateQuestResult() {
+    const diff = questDiff();
+    const negative = diff < 0;
+    const applied = state.quest.applied;
+    const amount = Math.abs(diff);
+
+    el.questProgress.hidden = negative;
+    el.questRaise.hidden = !negative;
+    el.questRaise.disabled = applied;
+    el.questDone.hidden = negative;
+
+    if (!negative) {
+      el.questProgressValue.textContent = String(diff);
+      el.questProgress.setAttribute(
+        "aria-label",
+        t("ui.questProgressAria", { n: diff })
+      );
+    } else {
+      el.questRaiseLabel.textContent = applied
+        ? t("ui.questRaised", { n: amount })
+        : t("ui.questRaiseThreat", { n: amount });
+      el.questRaise.setAttribute(
+        "aria-label",
+        applied
+          ? t("ui.questRaised", { n: amount })
+          : t("ui.questRaiseThreat", { n: amount })
+      );
+    }
+
+    // Campi e tasti in sola lettura dopo l'applicazione.
+    el.questWillpowerInput.disabled = applied;
+    el.questThreatInput.disabled = applied;
+    el.questWillpowerMinus.disabled = applied || state.quest.willpower <= WILLPOWER_MIN;
+    el.questWillpowerPlus.disabled = applied || state.quest.willpower >= WILLPOWER_MAX;
+    el.questThreatMinus.disabled = applied || state.quest.threat <= 0;
+    el.questThreatPlus.disabled = applied || state.quest.threat >= THREAT_MAX;
+
+    el.questWillpowerMinus.setAttribute(
+      "aria-label",
+      t("ui.questMinusAria", { field: t("ui.questWillpower") })
+    );
+    el.questWillpowerPlus.setAttribute(
+      "aria-label",
+      t("ui.questPlusAria", { field: t("ui.questWillpower") })
+    );
+    el.questThreatMinus.setAttribute(
+      "aria-label",
+      t("ui.questMinusAria", { field: t("ui.questThreat") })
+    );
+    el.questThreatPlus.setAttribute(
+      "aria-label",
+      t("ui.questPlusAria", { field: t("ui.questThreat") })
+    );
+
+    el.questLock.hidden = !applied;
+    if (applied) el.questLock.textContent = t("ui.questLocked");
+  }
+
+  function refreshQuestIfOpen() {
+    if (el.questOverlay.hidden) return;
+    syncQuestInputs();
+    updateQuestResult();
+  }
+
+  function openQuest() {
+    syncQuestInputs();
+    updateQuestResult();
+    openOverlay(el.questOverlay);
+  }
+
+  function stepQuest(field, delta) {
+    if (state.quest.applied) return;
+    setQuestValue(field, state.quest[field] + delta, true);
+    vibrate(4);
+  }
+
+  function clearThreatFlash() {
+    el.players
+      .querySelectorAll(".threat-hit")
+      .forEach((card) => card.classList.remove("threat-hit"));
+    el.players.querySelectorAll(".threat-float").forEach((node) => node.remove());
+  }
+
+  function flashThreat(amount) {
+    el.players.querySelectorAll(".counter-player").forEach((card) => {
+      card.classList.remove("threat-hit");
+      void card.offsetWidth;
+      card.classList.add("threat-hit");
+
+      const float = document.createElement("span");
+      float.className = "threat-float";
+      float.textContent = `+${amount}`;
+      float.setAttribute("aria-hidden", "true");
+      card.appendChild(float);
+
+      setTimeout(() => {
+        card.classList.remove("threat-hit");
+        float.remove();
+      }, 950);
+    });
+  }
+
+  function applyQuestThreat() {
+    const diff = questDiff();
+    if (diff >= 0 || state.quest.applied) return;
+    const amount = -diff;
+
+    mutate(actionLabel("history.questThreat", { amount }), () => {
+      state.quest.applied = true;
+      state.players.forEach((player) => {
+        player.threat = Math.min(THREAT_MAX, player.threat + amount);
+        // Un aumento esplicito spegne il promemoria della Minaccia iniziale.
+        player.setup = true;
+      });
+    });
+
+    flashThreat(amount);
+    // Il popup si chiude da solo: l'effetto si vede sui contatori.
+    closeOverlay(el.questOverlay);
+    vibrate(12);
+  }
+
   let threatTargetId = null;
 
   function openThreatDialog(id) {
@@ -1648,12 +1866,14 @@
       state.turno = 1;
       state.fase = 0;
       state.bookmark = null;
+      state.quest = makeQuest();
       state.players = state.players.map((player) => ({
         ...player,
         threat: THREAT_DEFAULT,
         setup: false,
       }));
     });
+    refreshQuestIfOpen();
     // Anche se la Minaccia era già a 30, il promemoria deve ripulsare.
     pulseThreatReminders();
     vibrate(10);
@@ -1758,6 +1978,7 @@
     const height = swapped ? baseW : baseH;
     updateTabletMode();
     document.documentElement.classList.toggle("narrow", width <= 350);
+    document.documentElement.classList.toggle("tight-head", width <= 379);
     document.documentElement.classList.toggle("compact-height", height <= 600);
     document.documentElement.classList.toggle("very-short", height < 480);
     updateRotateLabel();
@@ -2015,6 +2236,34 @@
 
   el.notesClose.addEventListener("click", closeNotesSheet);
   el.processClose.addEventListener("click", closeProcess);
+  el.questClose.addEventListener("click", () => closeOverlay(el.questOverlay));
+  el.questDone.addEventListener("click", () => closeOverlay(el.questOverlay));
+  el.questRaise.addEventListener("click", applyQuestThreat);
+  el.questWillpowerMinus.addEventListener("click", () => stepQuest("willpower", -1));
+  el.questWillpowerPlus.addEventListener("click", () => stepQuest("willpower", 1));
+  el.questThreatMinus.addEventListener("click", () => stepQuest("threat", -1));
+  el.questThreatPlus.addEventListener("click", () => stepQuest("threat", 1));
+
+  function bindQuestInput(input, field, allowNegative, maxLength) {
+    input.addEventListener("input", () => {
+      let text = input.value.replace(allowNegative ? /[^\d-]/g : /\D/g, "");
+      if (allowNegative) text = text.replace(/(?!^)-/g, "");
+      if (text.length > maxLength) text = text.slice(0, maxLength);
+      input.value = text;
+      const parsed = text === "" || text === "-" ? 0 : Number.parseInt(text, 10);
+      setQuestValue(field, parsed, false);
+    });
+    input.addEventListener("blur", syncQuestInputs);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        input.blur();
+      }
+    });
+  }
+
+  bindQuestInput(el.questWillpowerInput, "willpower", true, 4);
+  bindQuestInput(el.questThreatInput, "threat", false, 3);
   el.notesForm.addEventListener("submit", (event) => {
     event.preventDefault();
     addNote();
@@ -2028,7 +2277,9 @@
     const hadPending = state.players.some((player) => !player.setup);
     state = sanitize(entry.state);
     save();
+    clearThreatFlash();
     render();
+    refreshQuestIfOpen();
     // Se l'undo fa ricomparire il promemoria, rilancialo una volta.
     if (!hadPending && state.players.some((player) => !player.setup)) {
       pulseThreatReminders();
@@ -2070,6 +2321,7 @@
     el.resetOverlay,
     el.notesOverlay,
     el.processOverlay,
+    el.questOverlay,
     el.nameOverlay,
   ].forEach((overlay) => {
     overlay.addEventListener("click", (event) => {

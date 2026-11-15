@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Turno · LOTR LCG</title>
-  <meta name="description" content="Supporto tabellone per Il Signore degli Anelli LCG: turno, minaccia e fasi.">
+  <title>Rings Turn Log · Turno</title>
+  <meta name="description" content="Rings Turn Log: supporto tabellone per Il Signore degli Anelli LCG — turno, minaccia e fasi.">
   <meta name="theme-color" content="#0d0b08">
   <meta name="color-scheme" content="dark">
 
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Turno LCG">
+  <meta name="apple-mobile-web-app-title" content="Rings Turn Log">
 
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -22,7 +22,7 @@
   <div id="rotator" data-rotation="0">
     <main class="app">
       <header class="top">
-        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> LOTR LCG<span class="brand-version" id="appVersion"></span></span>
+        <span class="brand"><span class="brand-mark" aria-hidden="true">◈</span> Rings Turn Log<span class="brand-version" id="appVersion"></span></span>
 
         <div class="top-actions">
           <button class="icon-action" id="rotateBtn" type="button"
@@ -96,6 +96,62 @@
         </div>
         <p class="panel-sub" data-i18n="ui.processSub">Risoluzione del processo di combattimento.</p>
         <div class="step-list process-steps" id="processList"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="questOverlay" hidden>
+      <div class="panel panel-quest" role="dialog" aria-modal="true" aria-labelledby="questTitle">
+        <div class="panel-head">
+          <h2 id="questTitle" data-i18n="ui.questTitle">Risoluzione dell'impresa</h2>
+          <button class="icon-btn" id="questClose" type="button"
+                  aria-label="Chiudi la risoluzione dell'impresa"
+                  data-i18n-aria="ui.questClose"><span class="icon-mask icon-close" aria-hidden="true"></span></button>
+        </div>
+        <p class="panel-sub" data-i18n="ui.questSub">Progressi = Volontà − Minaccia</p>
+
+        <div class="quest-field">
+          <img class="quest-token" src="./willpower.png" alt="" aria-hidden="true">
+          <span class="quest-label" data-i18n="ui.questWillpower">Forza di Volontà</span>
+          <div class="quest-stepper">
+            <button class="step quest-step" id="questWillpowerMinus" type="button"
+                    aria-label="Diminuisci la Forza di Volontà">−</button>
+            <input class="quest-input" id="questWillpowerInput" type="text"
+                   inputmode="numeric" autocomplete="off" enterkeyhint="done"
+                   aria-label="Forza di Volontà" data-i18n-aria="ui.questWillpower"
+                   value="0">
+            <button class="step quest-step" id="questWillpowerPlus" type="button"
+                    aria-label="Aumenta la Forza di Volontà">+</button>
+          </div>
+        </div>
+
+        <div class="quest-field">
+          <img class="quest-token" src="./threat.png" alt="" aria-hidden="true">
+          <span class="quest-label" data-i18n="ui.questThreat">Forza di Minaccia</span>
+          <div class="quest-stepper">
+            <button class="step quest-step" id="questThreatMinus" type="button"
+                    aria-label="Diminuisci la Forza di Minaccia">−</button>
+            <input class="quest-input" id="questThreatInput" type="text"
+                   inputmode="numeric" autocomplete="off" enterkeyhint="done"
+                   aria-label="Forza di Minaccia" data-i18n-aria="ui.questThreat"
+                   value="0">
+            <button class="step quest-step" id="questThreatPlus" type="button"
+                    aria-label="Aumenta la Forza di Minaccia">+</button>
+          </div>
+        </div>
+
+        <div class="quest-result" id="questResult" aria-live="polite">
+          <div class="quest-progress" id="questProgress">
+            <img class="quest-token quest-token-progress" src="./progress.png" alt="" aria-hidden="true">
+            <span class="quest-progress-label" data-i18n="ui.questProgress">Progressi</span>
+            <span class="quest-progress-value" id="questProgressValue">0</span>
+          </div>
+          <button class="quest-raise" id="questRaise" type="button" hidden>
+            <img class="quest-token quest-token-threat" src="./threat.png" alt="" aria-hidden="true">
+            <span id="questRaiseLabel"></span>
+          </button>
+          <button class="quest-done" id="questDone" type="button" data-i18n="ui.questDone">Chiudi</button>
+        </div>
+        <p class="quest-lock" id="questLock" hidden></p>
       </div>
     </div>
 

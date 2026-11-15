@@ -232,10 +232,9 @@ body.modal-open #rotator {
 }
 
 .brand {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--muted);
   white-space: nowrap;
 }
@@ -725,6 +724,77 @@ body.modal-open #rotator {
   animation: pop 0.26s ease-out;
 }
 
+/* Effetto visivo quando la risoluzione dell'impresa aumenta la Minaccia. */
+@keyframes threat-hit {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192, 82, 72, 0);
+    transform: translateX(0);
+  }
+  20% {
+    box-shadow: 0 0 0 3px rgba(192, 82, 72, 0.55);
+    transform: translateX(-2px);
+  }
+  45% {
+    transform: translateX(2px);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(192, 82, 72, 0);
+    transform: translateX(-1px);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192, 82, 72, 0);
+    transform: translateX(0);
+  }
+}
+
+.threat-hit {
+  animation: threat-hit 0.55s ease-out;
+}
+
+.threat-float {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  z-index: 2;
+  padding: 1px 7px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #ff8b7e;
+  background: rgba(20, 14, 10, 0.92);
+  border: 1px solid rgba(192, 82, 72, 0.6);
+  border-radius: 999px;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  animation: threat-float 0.9s ease-out forwards;
+}
+
+@keyframes threat-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .threat-hit {
+    animation: none;
+  }
+
+  .threat-float {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, -24px);
+  }
+}
+
 /* ---------- phases ---------- */
 
 .phase {
@@ -981,6 +1051,26 @@ body.modal-open #rotator {
 .process-btn:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
+}
+
+.quest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #e8e2c8;
+  background: rgba(201, 162, 39, 0.16);
+  border-color: #8a6f2a;
+}
+
+.quest-btn:active {
+  background: rgba(201, 162, 39, 0.32);
+}
+
+.quest-btn-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  border-radius: 50%;
 }
 
 .gap {
@@ -1335,6 +1425,194 @@ body.modal-open #rotator {
   margin: 2px 0;
 }
 
+/* ---------- risoluzione dell'impresa ---------- */
+
+.panel-quest {
+  width: min(420px, 100%);
+}
+
+#questTitle {
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.quest-field {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.quest-field:first-of-type {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.quest-token {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  display: block;
+  border-radius: 50%;
+}
+
+.quest-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.quest-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quest-stepper .step {
+  flex: 0 0 38px;
+  height: 44px;
+  font-size: 1.35rem;
+  border-radius: 10px;
+  touch-action: manipulation;
+}
+
+.quest-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: 0 8px;
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ink);
+  background: #0e0c09;
+  border: 1px solid #4b3d18;
+  border-radius: 10px;
+  -moz-appearance: textfield;
+}
+
+.quest-input:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.quest-input:disabled {
+  opacity: 0.62;
+}
+
+.quest-result {
+  margin-top: 12px;
+}
+
+.quest-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(74, 110, 54, 0.18);
+  border: 1px solid #4c6a3a;
+  border-radius: 14px;
+}
+
+.quest-token-progress {
+  width: 32px;
+  height: 32px;
+}
+
+.quest-progress-label {
+  flex: 1 1 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b9cf9b;
+}
+
+.quest-progress-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #d7e8b8;
+}
+
+.quest-raise {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #ffe0d9;
+  background: linear-gradient(180deg, #a4433a, #7d2f28);
+  border: 1px solid #c05248;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.quest-raise .quest-token {
+  width: 26px;
+  height: 26px;
+}
+
+.quest-raise:active {
+  background: linear-gradient(180deg, #b74d43, #8c352d);
+}
+
+.quest-raise:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.quest-raise:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.quest-done {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.quest-done:active {
+  background: #1c1710;
+}
+
+.quest-done:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.quest-lock {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--muted);
+}
+
 .panel-head {
   display: flex;
   align-items: center;
@@ -1582,6 +1860,16 @@ body.modal-open #rotator {
 
 /* ---------- small / short layouts (classi impostate da app.js) ---------- */
 
+/* Il nome lungo dell'app chiede spazio: sotto i 380 px si compatta. */
+.tight-head .brand {
+  font-size: 0.68rem;
+}
+
+.tight-head .brand-version {
+  margin-left: 4px;
+  font-size: 0.55rem;
+}
+
 .narrow .app {
   padding-left: 10px;
   padding-right: 10px;
@@ -1597,6 +1885,11 @@ body.modal-open #rotator {
 
 .narrow .brand-version {
   display: none;
+}
+
+.narrow .brand {
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
 }
 
 .narrow .icon-action {

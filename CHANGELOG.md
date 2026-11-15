@@ -7,6 +7,35 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-15
+
+### Added
+
+- **Risoluzione dell'impresa (passo 3.4)**: una pastiglia sotto il passo apre un
+  popup con **Forza di Volontà** e **Forza di Minaccia**, entrambe con tasti
+  `−`/`+` e inserimento diretto. La Volontà può scendere sotto zero, la Minaccia
+  no. Il risultato è `Volontà − Minaccia`: se è zero o positivo compare il
+  **contatore dei progressi** con l'icona dedicata; se è negativo compare il
+  tasto **“Aumenta la minaccia di X”**, che aumenta di X la Minaccia di tutti i
+  giocatori con un effetto visivo sui contatori.
+- **Icone `willpower.png`, `threat.png` e `progress.png`** usate nel popup e
+  aggiunte al precache del service worker.
+
+### Changed
+
+- **Nuovo nome: Rings Turn Log**. Aggiornati brand, titolo della pagina, manifest
+  PWA (nome, nome breve, descrizione), titolo iOS, cache del service worker
+  (`rings-turn-log-v…`) e chiave di `localStorage` (`rings-turn-log/v1`); i
+  salvataggi della chiave precedente vengono letti e migrati da soli. Il nome
+  nel brand si compatta sotto i 380 px per lasciare spazio ai comandi.
+- Dopo aver applicato l'aumento di Minaccia il popup **si chiude da solo**, così
+  l'effetto si vede subito sui contatori; campi e tasti restano bloccati e
+  **Annulla** ripristina le Minacce, i valori inseriti e lo sblocco.
+- Quando il risultato è zero o positivo, sotto i progressi compare il tasto
+  **Chiudi**.
+- La risoluzione dell'impresa si azzera al passaggio al turno successivo e con
+  “Nuova partita”.
+
 ## [1.2.0] - 2026-11-15
 
 ### Added
@@ -20,6 +49,7 @@ versioning segue [Semantic Versioning](https://semver.org/lang/it/).
   lingue e la scelta viene ricordata. Oltre ai testi dell'interfaccia sono
   tradotti i nomi delle fasi, dei processi e i passi del regolamento, le
   etichette della cronologia, i titoli dei popup e i messaggi accessibili.
+  I testi inglesi dei passi seguono la terminologia del regolamento.
   La lingua iniziale segue `?lang=`, poi la preferenza salvata, poi la lingua
   del browser, con l'italiano come riserva.
 - **Nomi delle fasi sullo stepper del tablet**: con spazio a disposizione ogni

@@ -2,7 +2,7 @@
 importScripts("./version.js");
 
 const VERSION = self.APP_VERSION || "dev";
-const CACHE = `lotr-lcg-v${VERSION}`;
+const CACHE = `rings-turn-log-v${VERSION}`;
 
 const ASSETS = [
   "./",
@@ -26,6 +26,9 @@ const ASSETS = [
   "./plus.svg",
   "./enter-full-screen.svg",
   "./exit-full-screen.svg",
+  "./willpower.png",
+  "./threat.png",
+  "./progress.png",
   "./tap.mp3",
   "./undo.mp3",
   "./new-round.mp3",
