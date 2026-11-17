@@ -196,6 +196,25 @@ test("notes opened from a process close back to the process only", async ({ page
   await expect(page.locator(".panel-process")).toHaveCount(0);
 });
 
+test("typing while rotated temporarily restores the natural orientation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "tablet", "rotation is phone-only");
+  await page.getByRole("button", { name: /Ruota/ }).click();
+  await expect(page.locator("#rotator")).toHaveAttribute("data-rotation", "90");
+
+  await page.locator(".gap-add").first().click();
+  const notes = page.locator(".panel-notes");
+  await expect(notes).toBeVisible();
+  await notes.getByRole("textbox", { name: "Nuova nota" }).click();
+  await expect(page.locator("#rotator")).toHaveAttribute("data-rotation", "0");
+
+  await page.keyboard.press("Escape");
+  await expect(notes).toHaveCount(0);
+  await expect(page.locator("#rotator")).toHaveAttribute("data-rotation", "90");
+
+  await page.reload();
+  await expect(page.locator("#rotator")).toHaveAttribute("data-rotation", "90");
+});
+
 test("dialogs stay usable with the interface rotated", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "tablet", "rotation is phone-only");
   await page.getByRole("button", { name: /Ruota/ }).click();

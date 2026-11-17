@@ -278,6 +278,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted-foreground);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -394,7 +395,7 @@ body {
   font-size: 0.66rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -560,7 +561,7 @@ body {
   min-height: 32px;
   padding: 4px 3px;
   border: 1px solid var(--line-soft);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: #14100b;
   color: var(--muted-foreground);
   font: inherit;
@@ -1289,7 +1290,7 @@ body {
 
 .tablet .step-pill {
   min-height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   flex-direction: column;
   gap: 1px;
 }
@@ -1309,6 +1310,7 @@ body {
 
 .tablet .counter-player .player-caption {
   display: block;
+  text-align: center;
   font-size: 0.5rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
