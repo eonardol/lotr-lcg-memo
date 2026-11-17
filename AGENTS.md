@@ -61,6 +61,11 @@ a public API you cannot change at will.
   `version.js` on every release that changes a precached file (`index.html`,
   `src/**`, icons, audio, manifest); the build copies the root `version.js` into
   `dist/version.js`. README/CHANGELOG are not precached.
+- Releases are automated by `.github/workflows/release-tag.yml` on pushes to
+  `master`: it verifies `version.js` matches `package.json`, creates the
+  annotated `vX.Y.Z` tag if missing, and publishes a GitHub Release using the
+  matching `CHANGELOG.md` section. Bump both versions and write that changelog
+  section before merging.
 - `public/` holds only the manifest, the app icons and `_headers`. App icons,
   images and audio live in `src/assets` and are imported by the bundle.
 - UI texts live in `src/lib/i18n/dictionaries.ts` (`it` and `en`): keep both in

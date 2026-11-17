@@ -248,37 +248,38 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
 3. Add the entry in `CHANGELOG.md` (ISO date, `Added`, `Changed`, `Fixed`,
    `Removed` sections; move any `[Unreleased]` entries there).
 4. Commit the changes on the working branch.
-5. Bring them to the production branch Cloudflare Pages publishes (for example
-   `main`), for example with a merge from `develop`.
-6. Create the **annotated tag** on the commit you want to publish, from the
-   terminal:
+5. Open a pull request and merge it into the production branch Cloudflare
+   Pages publishes (`master`).
+6. On the push to `master`, the **Release tag** workflow
+   (`.github/workflows/release-tag.yml`) runs automatically:
+   - reads the version from `version.js` and verifies it matches `package.json`;
+   - extracts the matching section from `CHANGELOG.md`;
+   - creates the annotated tag `vX.Y.Z` if it does not exist;
+   - creates the GitHub Release using that changelog section as the notes.
+7. You can re-run it manually from **Actions → Release tag → Run workflow**.
 
-   ```bash
-   git tag -a v2.0.0 -m "v2.0.0"
-   ```
+The workflow is idempotent: if the tag or the release already exists, it leaves
+it alone. Tags are only created for pushes to `master`, never for pull-request
+branches. To check: `git show v2.0.1`, the GitHub Releases page, and the version
+next to the brand in the app.
 
-7. Push commits and tag:
+If the workflow is temporarily disabled, the manual fallback is:
 
-   ```bash
-   git push origin main
-   git push origin v2.0.0
-   # or, if the branch is tracked:
-   git push --follow-tags
-   ```
+```bash
+git tag -a v2.0.1 -m "v2.0.1"
+git push origin v2.0.1
+```
 
-8. On GitHub: **Releases → Draft a new release**, pick the tag you just pushed,
-   paste the matching changelog section and publish. Cloudflare redeploys the
-   branch by itself.
+Then create the GitHub Release and paste the `[2.0.1]` section from
+`CHANGELOG.md`.
 
-The tag is created **locally** and pushed with `git push`: no special button
-required. Alternatively you can create it from the UI:
+Alternatively you can create the tag from the UI:
 
 - **GitHub**: Releases → *Draft a new release* → *Choose a tag* → *Create new tag*;
 - **GitLab**: Repository → *Tags* → *New tag*, or Releases → *New release*.
 
 In every case the tag must point **exactly at the commit being published**, and
-must be annotated (`-a`) so it keeps author and message. To check: `git show
-v2.0.0` and, in the app, the text next to the brand.
+must be annotated (`-a`) so it keeps author and message.
 
 ### Rollback
 

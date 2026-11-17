@@ -119,6 +119,16 @@ export const useViewportLayout = (rotation: Rotation) => {
     };
   }, [rotation]);
 
+  useEffect(() => {
+    const swapped = rotation === 90;
+    const logicalWidth = swapped ? sizeRef.current.height : sizeRef.current.width;
+    const logicalHeight = swapped ? sizeRef.current.width : sizeRef.current.height;
+    document.documentElement.classList.toggle("narrow", logicalWidth <= 350);
+    document.documentElement.classList.toggle("tight-head", logicalWidth <= 379);
+    document.documentElement.classList.toggle("compact-height", logicalHeight <= 600);
+    document.documentElement.classList.toggle("very-short", logicalHeight < 480);
+  }, [rotation]);
+
   const swapped = rotation === 90;
   const logicalWidth = swapped ? size.height : size.width;
   const logicalHeight = swapped ? size.width : size.height;

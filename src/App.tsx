@@ -26,7 +26,7 @@ import { useWakeLock } from "@/hooks/useWakeLock";
 import { nextLanguage, translate } from "@/lib/i18n";
 import { store, useStore } from "@/lib/store";
 import { vibrate } from "@/lib/utils";
-import type { ProcessKind } from "@/lib/types";
+import type { ProcessKind, Rotation } from "@/lib/types";
 
 const appVersion = (window as Window & { APP_VERSION?: string }).APP_VERSION;
 
@@ -35,7 +35,9 @@ export const App = () => {
   const lang = useStore((state) => state.lang);
   const rotation = useStore((state) => state.rotation);
   const wakeWanted = useStore((state) => state.wake);
-  const layout = useViewportLayout(rotation);
+  const [textEditing, setTextEditing] = useState(false);
+  const effectiveRotation: Rotation = rotation === 90 && textEditing ? 0 : rotation;
+  const layout = useViewportLayout(effectiveRotation);
   const playSfx = useSfx();
   const threatAlert = useThreatAlert(players, playSfx);
   const wakeLock = useWakeLock(wakeWanted, (value) => store.setWake(value));
@@ -65,6 +67,39 @@ export const App = () => {
     if (!rotator) return;
     rotator.classList.toggle("modal-open", anyDialogOpen(dialogs));
   }, [dialogs]);
+
+  useEffect(() => {
+    if (!anyDialogOpen(dialogs)) setTextEditing(false);
+  }, [dialogs]);
+
+  useEffect(() => {
+    const isEditable = (target: EventTarget | null): target is HTMLElement =>
+      target instanceof HTMLElement &&
+      (target.matches("input, textarea") || target.isContentEditable);
+    let timer = 0;
+
+    const onFocusIn = (event: FocusEvent) => {
+      if (!isEditable(event.target)) return;
+      window.clearTimeout(timer);
+      setTextEditing(true);
+    };
+
+    const onFocusOut = (event: FocusEvent) => {
+      if (!isEditable(event.target)) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (!isEditable(document.activeElement)) setTextEditing(false);
+      }, 0);
+    };
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
 
   useEffect(() => {
     rotatorRef.current?.scrollTo({ top: 0 });
@@ -126,16 +161,17 @@ export const App = () => {
   };
 
   return (
-    <div ref={setRotator} id="rotator" data-rotation={rotation}>
+    <div ref={setRotator} id="rotator" data-rotation={effectiveRotation}>
       <PortalContainerProvider value={rotatorEl}>
         <main className="app-shell">
           <TopBar
             lang={lang}
             version={appVersion || "dev"}
-            rotation={rotation}
+            rotation={effectiveRotation}
             targetLandscape={layout.targetLandscape}
             wakeMode={wakeLock.mode}
             onRotate={() => {
+              setTextEditing(false);
               store.setRotation(rotation === 0 ? 90 : 0);
               vibrate(6);
             }}

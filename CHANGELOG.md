@@ -7,6 +7,21 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-17
+
+### Changed
+
+- **Releases are automated**: pushing to `master` verifies the version files,
+  creates the annotated `vX.Y.Z` tag when missing and publishes the GitHub
+  Release with the matching changelog section.
+
+### Fixed
+
+- **Editing while the interface is rotated**: focusing a field temporarily
+  restores the natural viewport orientation so the on-screen keyboard matches
+  the app, then returns to the chosen rotation. The saved rotation is not
+  changed.
+
 ## [2.0.0] - 2026-11-16
 
 ### Added
@@ -252,7 +267,8 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.1
 [2.0.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.0
 [1.3.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.2
 [1.3.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.1
