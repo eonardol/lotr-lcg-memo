@@ -78,40 +78,47 @@ it works offline.
 ## Run locally
 
 ```bash
-python3 -m http.server 8080
-# then open http://localhost:8080
+npm install
+npm run dev       # development server with HMR
+npm run build     # typecheck + production build in dist/
+npm run preview   # serve the production build
+npm test          # Vitest unit tests
+npm run test:e2e  # Playwright smoke tests (phone, tablet and offline PWA)
 ```
 
-You need HTTP, not `file://`, otherwise the manifest and (in some browsers) the
-wake lock won't work.
+The dev server is HTTP, so the manifest, service worker and wake lock work as
+they do in production.
 
-## Deploy to GitHub Pages
+## Deploy to Cloudflare Pages
 
-1. Create a repository and upload every file to the root of `main`.
-2. Repository → **Settings** → **Pages**.
-3. *Build and deployment* → Source: **Deploy from a branch** → Branch: `main`,
-   folder `/ (root)` → **Save**.
-4. After a minute the app is at `https://<user>.github.io/<repo>/`.
+1. Connect the repository to Cloudflare Pages.
+2. Build command: `npm run build`; output directory: `dist`.
+3. Deploy. The PWA manifest, service worker and precache are generated in
+   `dist/` by `vite-plugin-pwa`.
 
-All paths are relative, so it works both as a “root” site and as a project
+All paths are relative, so the same build works at a domain root or in a
 subfolder.
 
 ## Customization
 
-Texts live in `i18n.js`, logic and structure in `app.js`, the version in
-`version.js`:
+The React app lives in `src/`; the version stays in `version.js`:
 
 - `version.js`: `self.APP_VERSION` is the single source of truth for the version
-  shown in the app and for the service worker cache.
-- `i18n.js`: the `it` and `en` dictionaries (phase names, processes, rules step
-  texts, UI, history). Step keys are the stable ids used by notes and the
-  bookmark.
-- `FASI`: for each phase, its blocks built with `step("1.1")` and
-  `actionWindow("w-1")`; the text comes from `i18n.js` via the id.
-- `PROCESSI`: the two combat processes shown in the pop-ups (steps and action
-  windows).
-- `initialState()`: starting state (`turno: 1`, `fase: 0`, one player with
-  `threat: 30` and `setup: false`, quest resolution at zero).
+  shown in the app. The Vite build copies it to `dist/version.js` and the PWA
+  precaches it.
+- `src/lib/i18n/dictionaries.ts`: the `it` and `en` dictionaries (phase names,
+  processes, rules step texts, UI, history). Step keys are the stable ids used
+  by notes and the bookmark.
+- `src/lib/constants.ts`: `FASI`, `PROCESSI`, limits and storage keys. For each
+  phase the blocks are built with `step("1.1")` and `actionWindow("w-1")`; the
+  text comes from the dictionaries via the id.
+- `src/lib/game.ts`: `initialState()` (`turno: 1`, `fase: 0`, one player with
+  `threat: 30` and `setup: false`, quest resolution at zero), cloning and
+  helpers.
+- `src/lib/storage.ts`: load/save, migration and sanitisation of the
+  `localStorage` document.
+- `src/lib/store.ts`: state store, mutations, undo history and persistence.
+- `src/lib/types.ts`: persisted and UI types.
 - `state.quest`: `{ willpower, threat, applied }` for the quest resolution; it
   is part of the undo snapshots.
 - `PLAYER_LIMIT` (4) and `PLAYER_NAME_MAX` (18): maximum number of players and
@@ -121,9 +128,8 @@ Texts live in `i18n.js`, logic and structure in `app.js`, the version in
   game-over sound plays once per crossing.
 - `THREAT_MAX`: maximum settable Threat (999).
 - `NOTE_LIMIT`: maximum length of a note (240 characters).
-- `sfx`: audio files and volumes (`tap` 0.45, `undo` 0.7, `round` 0.9,
-  `over` 0.9). The files `tap.mp3`, `undo.mp3`, `new-round.mp3` and
-  `game-over.mp3` are in the project root.
+- `src/hooks/useSfx.ts`: audio files and volumes (`tap` 0.45, `undo` 0.7,
+  `round` 0.9, `over` 0.9). The files live in `src/assets/`.
 
 ## Players and tablet mode
 
@@ -190,11 +196,11 @@ does not clear them and Undo does not touch them.
 - Order at startup: `?lang=en` parameter (handy for testing), then the saved
   language, then `navigator.languages`, and finally Italian.
 - English translations follow the rules terminology; to fix something, edit
-  `i18n.js`.
-- To add a language you need one entry in `self.I18N` and one in
-  `self.I18N_LANG_NAMES`: the button includes it in the cycle automatically.
+  `src/lib/i18n/dictionaries.ts`.
+- To add a language you need one entry in `I18N` and one in `I18N_LANG_NAMES`:
+  the button includes it in the cycle automatically.
 
-Styling (dark/gold theme) lives in `styles.css`, CSS variables in `:root`.
+Styling (dark/gold theme) lives in `src/index.css`, CSS variables in `:root`.
 
 ## Version, changelog and release cycle
 
@@ -206,16 +212,15 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "1.3.2";
+self.APP_VERSION = "2.0.0";
 ```
 
-From there:
+From there the app shows it next to the brand (`Rings Turn Log v2.0.0`); the
+build copies the file into `dist/version.js` and the generated service worker
+precaches it.
 
-- `app.js` shows it next to the brand (`Rings Turn Log v1.3.2`);
-- `sw.js` uses it for the cache name (`rings-turn-log-v1.3.2`).
-
-Do not write the version number anywhere else: change `version.js` and
-everything else follows.
+Do not write the version number anywhere else: change `version.js`,
+`package.json` and the changelog together.
 
 ### Version numbers (Semantic Versioning)
 
@@ -227,7 +232,7 @@ everything else follows.
 ### When to bump the version
 
 Bump it **on every release that changes cached files**: `index.html`,
-`styles.css`, `app.js`, `version.js`, `manifest.webmanifest`, icons and audio.
+`src/**`, `manifest.webmanifest`, icons and audio.
 
 The service worker serves those files from the cache: without the bump, a phone
 with the app already installed may keep showing the old version.
@@ -237,32 +242,33 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
 
 ### Release cycle
 
-1. Finish the changes and test them locally (`python3 -m http.server`).
+1. Finish the changes and test them locally (`npm test`, `npm run test:e2e`,
+   `npm run build && npm run preview`).
 2. Bump `version.js` with the new number.
 3. Add the entry in `CHANGELOG.md` (ISO date, `Added`, `Changed`, `Fixed`,
    `Removed` sections; move any `[Unreleased]` entries there).
 4. Commit the changes on the working branch.
-5. Bring them to the branch GitHub Pages publishes (in the setup above, `main`),
-   for example with a merge from `develop`.
+5. Bring them to the production branch Cloudflare Pages publishes (for example
+   `main`), for example with a merge from `develop`.
 6. Create the **annotated tag** on the commit you want to publish, from the
    terminal:
 
    ```bash
-   git tag -a v1.3.2 -m "v1.3.2"
+   git tag -a v2.0.0 -m "v2.0.0"
    ```
 
 7. Push commits and tag:
 
    ```bash
    git push origin main
-   git push origin v1.3.2
+   git push origin v2.0.0
    # or, if the branch is tracked:
    git push --follow-tags
    ```
 
 8. On GitHub: **Releases → Draft a new release**, pick the tag you just pushed,
-   paste the matching changelog section and publish. Pages redeploys the branch
-   by itself.
+   paste the matching changelog section and publish. Cloudflare redeploys the
+   branch by itself.
 
 The tag is created **locally** and pushed with `git push`: no special button
 required. Alternatively you can create it from the UI:
@@ -272,7 +278,7 @@ required. Alternatively you can create it from the UI:
 
 In every case the tag must point **exactly at the commit being published**, and
 must be annotated (`-a`) so it keeps author and message. To check: `git show
-v1.3.2` and, in the app, the text next to the brand.
+v2.0.0` and, in the app, the text next to the brand.
 
 ### Rollback
 
@@ -290,14 +296,13 @@ To go back:
 
 - Brand on top: it must show the version you just released.
 - DevTools → *Application → Service Workers*: worker active.
-- DevTools → *Application → Cache Storage*: a single cache,
-  `rings-turn-log-v<version>`; caches from previous versions are deleted on
-  activation.
+- DevTools → *Application → Cache Storage*: Workbox precache for the current
+  build; outdated entries are cleaned up on activation.
 
 ## Install and offline use
 
-- Serve the app over **HTTPS** (GitHub Pages works) or `localhost`: the service
-  worker does not work from `file://`.
+- Serve the app over **HTTPS** (Cloudflare Pages works) or `localhost`: the
+  service worker does not work from `file://`.
 - On the first load HTML, CSS, JS, icons and audio are cached. From then on the
   app opens and works in airplane mode too.
 - Android/Chrome: menu → “Install app” (or the automatic prompt). iOS/Safari:
@@ -356,37 +361,35 @@ it is the only way for the lock to work.
 - Browsers only allow audio after a user gesture: both the tap and the new-turn
   sound start from a touch, so they play correctly. If you hear nothing, check
   the phone volume and the silent switch.
-- Effect volume is set in `app.js` (`sfx`); you can replace `tap.mp3`,
-  `undo.mp3`, `new-round.mp3` and `game-over.mp3` keeping the same names. The
+- Effect volume is set in `src/hooks/useSfx.ts`; you can replace the files in
+  `src/assets/` (`tap.mp3`, `undo.mp3`, `new-round.mp3`, `game-over.mp3`). The
   Undo button uses only `undo.mp3`, without the generic tap on top.
 - `game-over.mp3` fires once, when a player's threat goes from below 50 to 50 or
   more; staying above the threshold is silent, going back down and crossing it
   again plays it again. Undo never plays it, and neither does reopening the app
   with the threat already high.
-- Fullscreen is **disabled**: the `⛶` button was replaced by the language
-  selector. The markup is commented out in `index.html` and the code in
-  `app.js` is guarded by `if (el.fullscreenBtn)`, so re-enabling it only takes
-  removing the comment (and putting the button back in place of or next to
-  `langBtn`). The Fullscreen API was applied to the page root, not to the
-  rotated container, so rotation stayed active in fullscreen too.
+- Fullscreen is **disabled**: the language selector takes the place of the old
+  `⛶` button. The React app does not expose a fullscreen control; if it is
+  reintroduced, apply the Fullscreen API to the page root, not to the rotated
+  container, so rotation stays active.
 
 ## Structure
 
 ```
 index.html
-styles.css
-app.js
-i18n.js
 version.js
-sw.js
-manifest.webmanifest
-icon.svg  icon-192.png  icon-512.png
-bookmark.svg  bookmark-filled.svg  pencil-1.svg  trash.svg
-screen-portrait.svg  screen-landscape.svg  reset.svg  update.svg
-cross-2.svg  plus.svg
-enter-full-screen.svg  exit-full-screen.svg
-willpower.png  threat.png  progress.png
-tap.mp3  undo.mp3  new-round.mp3  game-over.mp3
+package.json
+vite.config.ts
+src/
+  main.tsx  App.tsx  index.css
+  components/app/       layout, counters, phase list, dialogs
+  components/ui/        shadcn-style primitives
+  hooks/                viewport, wake lock, sounds, long-press, threat alert
+  lib/                  storage, game, store, rules constants, i18n, notes
+  assets/               icons, images, audio
+public/
+  manifest.webmanifest  icon.svg  icon-192.png  icon-512.png  _headers
+tests/e2e/              Playwright smoke tests
 screenshot.png
 CHANGELOG.md
 README.md
@@ -397,7 +400,7 @@ CLAUDE.md
 ```
 
 UI icons are [Radix Icons](https://www.radix-ui.com/icons) (MIT): only the SVGs
-actually used are in the root, while the full `icons/` folder is excluded by
+actually used are in `src/assets`, while the full `icons/` folder is excluded by
 `.gitignore`.
 
 `AGENTS.md` documents the rules for coding agents (`CLAUDE.md` simply points to
