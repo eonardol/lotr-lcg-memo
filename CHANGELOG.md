@@ -14,6 +14,9 @@ versioning follows [Semantic Versioning](https://semver.org/).
 - **Releases are automated**: pushing to `master` verifies the version files,
   creates the annotated `vX.Y.Z` tag when missing and publishes the GitHub
   Release with the matching changelog section.
+- **Counter headers and phase shortcuts**: the “Turno” and “Minaccia” labels
+  are centered in their boxes, and the numbered phase buttons use the same
+  rounded corners as the “Avanti” button.
 
 ### Fixed
 
