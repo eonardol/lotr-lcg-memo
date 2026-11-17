@@ -71,6 +71,11 @@ a public API you cannot change at will.
   annotated `vX.Y.Z` tag if missing, and publishes a GitHub Release using the
   matching `CHANGELOG.md` section. Bump both versions and write that changelog
   section before merging.
+- **Check the remote before choosing the next version**: local tags and
+  `origin/*` refs can be stale. Run `git ls-remote --tags origin` (or
+  `gh release list`) to see what is actually released; if the tag exists, the
+  change is a new release (patch for fixes), even if the local branch still
+  shows the previous number.
 - `public/` holds only the manifest, the app icons and `_headers`. App icons,
   images and audio live in `src/assets` and are imported by the bundle.
 - UI texts live in `src/lib/i18n/dictionaries.ts` (`it` and `en`): keep both in

@@ -7,6 +7,14 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-11-17
+
+### Fixed
+
+- **The purple dot only marks phases with a visible note.** Hidden notes no
+  longer light the dot on the phase buttons; it appears again as soon as at
+  least one note in the phase is shown.
+
 ## [2.1.0] - 2026-11-17
 
 ### Added
@@ -311,7 +319,8 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.1.1
 [2.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.1.0
 [2.0.3]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.3
 [2.0.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.2
