@@ -1,2 +1,6 @@
 # Set completo delle icone Radix: in root restano solo quelle usate.
 icons/
+node_modules/
+dist/
+test-results/
+playwright-report/
