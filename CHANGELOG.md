@@ -7,6 +7,14 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-11-17
+
+### Fixed
+
+- **The “Turno” label stays visible on phones in landscape and with the UI
+  rotated.** On short screens it was hidden, so the Turn counter could be
+  confused with the Threat one; it now shrinks instead of disappearing.
+
 ## [2.0.2] - 2026-11-17
 
 ### Added
@@ -294,7 +302,9 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.3
+[2.0.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.2
 [2.0.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.1
 [2.0.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.0
 [1.3.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v1.3.2

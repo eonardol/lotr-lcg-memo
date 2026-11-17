@@ -213,10 +213,10 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "2.0.2";
+self.APP_VERSION = "2.0.3";
 ```
 
-From there the app shows it next to the brand (`Rings Turn Log v2.0.2`); the
+From there the app shows it next to the brand (`Rings Turn Log v2.0.3`); the
 build copies the file into `dist/version.js` and the generated service worker
 precaches it.
 
@@ -276,17 +276,17 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
 
 The workflow is idempotent: if the tag or the release already exists, it leaves
 it alone. Tags are only created for pushes to `master`, never for pull-request
-branches. To check: `git show v2.0.2`, the GitHub Releases page, and the version
+branches. To check: `git show v2.0.3`, the GitHub Releases page, and the version
 next to the brand in the app.
 
 If the workflow is temporarily disabled, the manual fallback is:
 
 ```bash
-git tag -a v2.0.2 -m "v2.0.2"
-git push origin v2.0.2
+git tag -a v2.0.3 -m "v2.0.3"
+git push origin v2.0.3
 ```
 
-Then create the GitHub Release and paste the `[2.0.2]` section from
+Then create the GitHub Release and paste the `[2.0.3]` section from
 `CHANGELOG.md`.
 
 Alternatively you can create the tag from the UI:

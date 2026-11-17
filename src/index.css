@@ -1555,10 +1555,17 @@ body {
 
 .very-short .counter {
   min-height: 58px;
+  gap: 2px;
   padding: 4px 7px 5px;
 }
 
-.very-short .counter-label,
+/* In orizzontale resta visibile: senza la label il contatore Turno non si
+   distingue più da quello della Minaccia. */
+.very-short .counter-label {
+  font-size: 0.58rem;
+  line-height: 1.1;
+}
+
 .very-short .edit-hint,
 .very-short .player-caption {
   display: none;
