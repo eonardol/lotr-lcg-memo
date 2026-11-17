@@ -7,6 +7,30 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-11-17
+
+### Added
+
+- **Update check in the header**: the version next to the brand is now a
+  button. A gold dot appears only when a newer version is available; tapping
+  the version asks for confirmation, and a second tap updates the app and
+  reloads it. The saved game, notes, bookmark and settings are preserved.
+- **Silent checks**: the app checks for updates on launch, when it returns to
+  the foreground and every 30 minutes, without interrupting the game. Tapping
+  the version also starts a manual check, with localised checking, up-to-date,
+  offline and error feedback.
+
+### Changed
+
+- **More reliable update detection**: the service worker is registered with an
+  explicit scope and `updateViaCache: "none"`, while the check fetches
+  `version.js` with a cache-busting query and `no-store`. `/version.js` is
+  served with `no-cache`, so installed apps and intermediary caches cannot keep
+  returning the old version.
+- **Accessible feedback**: update states are announced through an `aria-live`
+  message in Italian and English; the spinner respects
+  `prefers-reduced-motion`.
+
 ## [2.0.1] - 2026-11-17
 
 ### Changed

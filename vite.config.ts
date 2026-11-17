@@ -24,7 +24,7 @@ export default defineConfig({
     appVersionPlugin(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: null,
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,mp3}"],

@@ -26,6 +26,54 @@ test("boots, updates counters and persists across reloads", async ({ page }) => 
   await expect(page.locator(".phase-name")).toHaveText("Pianificazione");
 });
 
+test("version badge reports an available update and asks for confirmation", async ({ page }) => {
+  await page.route(/\/version\.js\?ts=/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: 'self.APP_VERSION = "9.9.9";',
+    })
+  );
+  await page.reload();
+
+  const version = page.locator(".brand-version");
+  await expect(version).toHaveAttribute("data-state", "available");
+  await expect(version).toHaveText(/^v\d+\.\d+\.\d+/);
+
+  await version.click();
+  await expect(version).toHaveAttribute("data-state", "confirming");
+  await expect(version).toHaveText("Aggiorna");
+});
+
+test("version badge reports when the app is already up to date", async ({ page }) => {
+  const current = await page.evaluate(
+    () => (window as Window & { APP_VERSION?: string }).APP_VERSION
+  );
+  await page.route(/\/version\.js\?ts=/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: `self.APP_VERSION = "${current}";`,
+    })
+  );
+  await page.reload();
+
+  const version = page.locator(".brand-version");
+  await version.click();
+  await expect(version).toHaveAttribute("data-state", "current");
+  await expect(version).toHaveText("✓");
+});
+
+test("version badge reports a failed update check", async ({ page }) => {
+  await page.route(/\/version\.js\?ts=/, (route) => route.abort());
+  await page.reload();
+
+  const version = page.locator(".brand-version");
+  await version.click();
+  await expect(version).toHaveAttribute("data-state", "error");
+  await expect(version).toHaveText("!");
+});
+
 test("loads an old save with the exact v1 storage contract", async ({ page }) => {
   await page.evaluate(() => {
     localStorage.clear();

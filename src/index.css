@@ -193,10 +193,102 @@ body {
 }
 
 .brand-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  margin: -7px -5px;
+  padding: 6px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #6f6552;
+  font: inherit;
   font-size: 0.58rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: #6f6552;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.brand-version:hover:not(:disabled) {
+  color: var(--gold-bright);
+}
+
+.brand-version:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.brand-version:disabled {
+  cursor: default;
+}
+
+.brand-version[data-state="available"] .update-dot {
+  opacity: 1;
+  background: var(--gold-bright);
+  box-shadow: 0 0 0 3px rgba(232, 198, 90, 0.16);
+  animation: update-pulse 1.8s ease-in-out infinite;
+}
+
+.brand-version[data-state="confirming"] {
+  color: var(--gold-bright);
+}
+
+.brand-version[data-state="checking"] .update-dot,
+.brand-version[data-state="applying"] .update-dot {
+  opacity: 1;
+  background: transparent;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  animation: update-spin 700ms linear infinite;
+}
+
+.brand-version[data-state="current"] {
+  color: var(--gold-bright);
+}
+
+.brand-version[data-state="error"] {
+  color: var(--destructive);
+}
+
+.brand-version[data-state="offline"] {
+  color: var(--muted-foreground);
+}
+
+.brand-version[data-state="confirming"] .update-dot,
+.brand-version[data-state="current"] .update-dot,
+.brand-version[data-state="error"] .update-dot,
+.brand-version[data-state="offline"] .update-dot {
+  display: none;
+}
+
+.update-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0;
+}
+
+@keyframes update-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 2px rgba(232, 198, 90, 0.12);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(232, 198, 90, 0.2);
+  }
+}
+
+@keyframes update-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .brand-mark {
@@ -1286,6 +1378,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .brand-version .update-dot {
+    animation: none !important;
+  }
+}
+
 /* ---------- responsive ---------- */
 
 .tablet .step-pill {
@@ -1340,7 +1438,7 @@ body {
 
 .narrow .brand-version,
 .tight-head .brand-version {
-  display: block;
+  display: inline-flex;
   line-height: 1;
 }
 
