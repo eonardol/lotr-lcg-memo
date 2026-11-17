@@ -16,15 +16,17 @@ type NoteGapProps = {
 export const NoteGap = ({ container, anchor, onOpenNotes }: NoteGapProps) => {
   const notesMap = useStore((state) => state.notes);
   const notes = notesMap[noteKey(container, anchor)] ?? EMPTY_NOTES;
+  // Le note nascoste restano nel dialogo ma non occupano spazio nel passo.
+  const visibleNotes = notes.filter((note) => !note.hidden);
   const lang = useStore((state) => state.lang);
   const t = (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars);
   const gap = gapLabel(lang, container, anchor);
 
   return (
     <div className="gap">
-      {notes.length > 0 && (
+      {visibleNotes.length > 0 && (
         <div className="gap-notes">
-          {notes.map((note) => (
+          {visibleNotes.map((note) => (
             <button
               key={note.id}
               type="button"

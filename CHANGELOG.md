@@ -7,6 +7,15 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-17
+
+### Added
+
+- **Hide and show notes**: every note in the panel has an eye button. Hidden
+  notes stay saved and readable in the panel (dimmed, with a “Hidden” badge),
+  can still be edited and deleted, and take no space between the steps. The
+  flag is optional, so saves from previous versions load unchanged.
+
 ## [2.0.3] - 2026-11-17
 
 ### Fixed
@@ -302,7 +311,8 @@ First public release.
   left at the same indent as the steps.
 - The phase card content is top-aligned.
 
-[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.0.3...HEAD
+[Unreleased]: https://github.com/eonardol/lotr-lcg-memo/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.1.0
 [2.0.3]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.3
 [2.0.2]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.2
 [2.0.1]: https://github.com/eonardol/lotr-lcg-memo/releases/tag/v2.0.1

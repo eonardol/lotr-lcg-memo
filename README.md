@@ -46,7 +46,8 @@ it works offline.
   time; the row is highlighted and a yellow dot appears on the matching phase in
   the stepper (combat processes mark phase 6). “New game” clears it.
 - **Notes between steps**: the `＋` in every gap opens that gap's panel; notes
-  show inline in purple and can be added, edited and deleted. They survive
+  show inline in purple and can be added, edited, hidden/shown and deleted.
+  Hidden notes stay saved but take no space between the steps. They survive
   “New game” and are flagged by a purple dot on the stepper.
 - **Bilingual IT/EN interface**: the top-right button toggles Italian and
   English (the choice is remembered). Phase names, processes, rules steps,
@@ -155,7 +156,9 @@ container and gap: `"0::1.3"` = after step 1.3 of the Resource phase, `"0::end"`
 = end of phase, `"proc:nemici::6.4.1"` = after 6.4.1 in the enemy attacks
 process. Saves from the old format (notes per phase) are migrated automatically
 to the end of the phase. Notes are not part of the game state, so “New game”
-does not clear them and Undo does not touch them.
+does not clear them and Undo does not touch them. Each note has an optional
+`hidden` flag: hidden notes stay saved (and visible, dimmed, in the panel) but
+are not rendered between the steps; saves without the flag are read as visible.
 
 ## Bookmark
 
@@ -213,10 +216,10 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "2.0.3";
+self.APP_VERSION = "2.1.0";
 ```
 
-From there the app shows it next to the brand (`Rings Turn Log v2.0.3`); the
+From there the app shows it next to the brand (`Rings Turn Log v2.1.0`); the
 build copies the file into `dist/version.js` and the generated service worker
 precaches it.
 
@@ -276,17 +279,17 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
 
 The workflow is idempotent: if the tag or the release already exists, it leaves
 it alone. Tags are only created for pushes to `master`, never for pull-request
-branches. To check: `git show v2.0.3`, the GitHub Releases page, and the version
+branches. To check: `git show v2.1.0`, the GitHub Releases page, and the version
 next to the brand in the app.
 
 If the workflow is temporarily disabled, the manual fallback is:
 
 ```bash
-git tag -a v2.0.3 -m "v2.0.3"
-git push origin v2.0.3
+git tag -a v2.1.0 -m "v2.1.0"
+git push origin v2.1.0
 ```
 
-Then create the GitHub Release and paste the `[2.0.3]` section from
+Then create the GitHub Release and paste the `[2.1.0]` section from
 `CHANGELOG.md`.
 
 Alternatively you can create the tag from the UI:

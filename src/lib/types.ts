@@ -34,6 +34,8 @@ export type HistoryEntry = {
 export type Note = {
   id: string;
   text: string;
+  /** Facoltativo: le note nascoste restano salvate ma non compaiono nei passi. */
+  hidden?: boolean;
 };
 
 export type NotesMap = Record<string, Note[]>;

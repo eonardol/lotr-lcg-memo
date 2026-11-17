@@ -146,6 +146,7 @@ export const sanitizeNotes = (raw: unknown): NotesMap => {
       .map((note) => ({
         id: typeof note.id === "string" && note.id ? note.id : makeId(),
         text: note.text.slice(0, NOTE_LIMIT).trim(),
+        ...(note.hidden === true ? { hidden: true } : {}),
       }))
       .filter((note) => note.text.length > 0)
       .slice(0, NOTES_PER_GAP);

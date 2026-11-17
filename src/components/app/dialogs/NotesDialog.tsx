@@ -9,6 +9,7 @@ import { vibrate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "../Icon";
+import type { Note } from "@/lib/types";
 import { DialogShell } from "./DialogShell";
 import type { NotesScope } from "./dialog-state";
 
@@ -46,7 +47,7 @@ export const NotesDialog = ({ scope, onClose }: NotesDialogProps) => {
     });
   }, [editingId]);
 
-  const updateList = (apply: (items: { id: string; text: string }[]) => { id: string; text: string }[]) => {
+  const updateList = (apply: (items: Note[]) => Note[]) => {
     if (!scope) return;
     const key = noteKey(scope.container, scope.anchor);
     store.updateNotes((draftNotes) => {
@@ -88,6 +89,21 @@ export const NotesDialog = ({ scope, onClose }: NotesDialogProps) => {
     vibrate(8);
   };
 
+  const toggleHidden = (id: string) => {
+    updateList((items) =>
+      items.map((note) => {
+        if (note.id !== id) return note;
+        if (note.hidden) {
+          const clone = { ...note };
+          delete clone.hidden;
+          return clone;
+        }
+        return { ...note, hidden: true };
+      })
+    );
+    vibrate(6);
+  };
+
   const onEscapeKeyDown = (event: KeyboardEvent) => {
     if (!editingId && !deletingId) return;
     event.preventDefault();
@@ -118,7 +134,7 @@ export const NotesDialog = ({ scope, onClose }: NotesDialogProps) => {
         {list.map((note) => (
           <li
             key={note.id}
-            className={`note-row${editingId === note.id ? " editing" : ""}${deletingId === note.id ? " confirming" : ""}`}
+            className={`note-row${editingId === note.id ? " editing" : ""}${deletingId === note.id ? " confirming" : ""}${note.hidden ? " hidden" : ""}`}
           >
             {editingId === note.id ? (
               <>
@@ -161,8 +177,25 @@ export const NotesDialog = ({ scope, onClose }: NotesDialogProps) => {
               </>
             ) : (
               <>
-                <p className="note-text">{note.text}</p>
+                <p className="note-text">
+                  {note.hidden && <span className="note-hidden-badge">{t("ui.noteHidden")}</span>}
+                  {note.text}
+                </p>
                 <div className="note-actions">
+                  <button
+                    type="button"
+                    className="note-icon"
+                    aria-pressed={!!note.hidden}
+                    title={note.hidden ? t("ui.noteShow") : t("ui.noteHide")}
+                    aria-label={
+                      note.hidden
+                        ? t("ui.noteShowAria", { text: note.text })
+                        : t("ui.noteHideAria", { text: note.text })
+                    }
+                    onClick={() => toggleHidden(note.id)}
+                  >
+                    <Icon kind={note.hidden ? "eyeOpen" : "eyeClosed"} />
+                  </button>
                   <button
                     type="button"
                     className="note-icon"

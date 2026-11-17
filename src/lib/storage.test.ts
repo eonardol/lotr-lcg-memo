@@ -104,6 +104,39 @@ describe("storage contract", () => {
     expect(notes["0::1.3"]).toEqual([{ id: "ok", text: "keep me" }]);
   });
 
+  it("keeps the optional hidden flag on notes", () => {
+    const notes = sanitizeNotes({
+      "0::1.3": [
+        { id: "visible", text: "Visibile" },
+        { id: "hidden", text: "Nascosta", hidden: true },
+        { id: "false", text: "Non nascosta", hidden: false },
+      ],
+    });
+    expect(notes["0::1.3"]).toEqual([
+      { id: "visible", text: "Visibile" },
+      { id: "hidden", text: "Nascosta", hidden: true },
+      { id: "false", text: "Non nascosta" },
+    ]);
+  });
+
+  it("round-trips hidden notes and still loads saves without the flag", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...legacyDocument,
+        notes: {
+          "0::1.3": [
+            { id: "old", text: "Nota vecchia" },
+            { id: "new", text: "Nota nascosta", hidden: true },
+          ],
+        },
+      })
+    );
+    const loaded = loadDocument();
+    expect(loaded.notes["0::1.3"][0].hidden).toBeUndefined();
+    expect(loaded.notes["0::1.3"][1].hidden).toBe(true);
+  });
+
   it("normalizes rotation, clamps values and writes the exact document keys", () => {
     const state = sanitize({
       turno: 0,
