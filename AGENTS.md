@@ -61,6 +61,11 @@ a public API you cannot change at will.
   `version.js` on every release that changes a precached file (`index.html`,
   `src/**`, icons, audio, manifest); the build copies the root `version.js` into
   `dist/version.js`. README/CHANGELOG are not precached.
+- PWA updates: the header version is the update affordance (`useAppUpdate`,
+  `UpdateVersionButton`). Keep SW registration explicit (`injectRegister: null`,
+  `updateViaCache: "none"`), fetch `/version.js?ts=…` with `no-store`, and keep
+  `/version.js` as `no-cache` in `public/_headers`. Never auto-reload or apply
+  an update without the user's second tap.
 - Releases are automated by `.github/workflows/release-tag.yml` on pushes to
   `master`: it verifies `version.js` matches `package.json`, creates the
   annotated `vX.Y.Z` tag if missing, and publishes a GitHub Release using the

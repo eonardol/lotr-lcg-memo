@@ -73,7 +73,8 @@ it works offline.
   where you left it. Notes survive “New game”. Saves from the app's old name
   (`lotr-lcg-memo/v1`) are read and migrated automatically.
 - **Installable, offline-first PWA** (manifest + service worker): works without
-  a network after the first load. The version is shown next to the brand.
+  a network after the first load. The version next to the brand also checks for
+  updates and shows a gold dot when a new version is ready.
 
 ## Run locally
 
@@ -212,15 +213,30 @@ the rules for keeping it in sync with the version.
 The version has a single source of truth: **`version.js`**
 
 ```js
-self.APP_VERSION = "2.0.0";
+self.APP_VERSION = "2.0.2";
 ```
 
-From there the app shows it next to the brand (`Rings Turn Log v2.0.0`); the
+From there the app shows it next to the brand (`Rings Turn Log v2.0.2`); the
 build copies the file into `dist/version.js` and the generated service worker
 precaches it.
 
 Do not write the version number anywhere else: change `version.js`,
 `package.json` and the changelog together.
+
+### Update checks
+
+The same file is the update signal. The version next to the brand is a button:
+a gold dot means a newer version is available; tap the version, then tap
+`Aggiorna`/`Update` to install it and reload. The game is saved before the
+reload, so the current turn, players, notes, bookmark and settings are kept.
+
+Checks are silent on launch, when the app returns to the foreground and every
+30 minutes. Tapping the version also checks immediately: the result is a gold
+dot for an update, `✓` when up to date, or `!` when offline/the check failed.
+The app never reloads on its own.
+
+Apps installed before `2.0.2` do not have this checker, so the first upgrade can
+still require closing the app completely and reopening it.
 
 ### Version numbers (Semantic Versioning)
 
@@ -260,17 +276,17 @@ It is not needed for changes only to `README.md`, `CHANGELOG.md` or
 
 The workflow is idempotent: if the tag or the release already exists, it leaves
 it alone. Tags are only created for pushes to `master`, never for pull-request
-branches. To check: `git show v2.0.1`, the GitHub Releases page, and the version
+branches. To check: `git show v2.0.2`, the GitHub Releases page, and the version
 next to the brand in the app.
 
 If the workflow is temporarily disabled, the manual fallback is:
 
 ```bash
-git tag -a v2.0.1 -m "v2.0.1"
-git push origin v2.0.1
+git tag -a v2.0.2 -m "v2.0.2"
+git push origin v2.0.2
 ```
 
-Then create the GitHub Release and paste the `[2.0.1]` section from
+Then create the GitHub Release and paste the `[2.0.2]` section from
 `CHANGELOG.md`.
 
 Alternatively you can create the tag from the UI:
@@ -295,7 +311,8 @@ To go back:
 
 ### Quick check
 
-- Brand on top: it must show the version you just released.
+- Brand on top: it must show the version you just released. The previously
+  installed version should show the gold update dot after a check.
 - DevTools → *Application → Service Workers*: worker active.
 - DevTools → *Application → Cache Storage*: Workbox precache for the current
   build; outdated entries are cleaned up on activation.
@@ -308,7 +325,9 @@ To go back:
   app opens and works in airplane mode too.
 - Android/Chrome: menu → “Install app” (or the automatic prompt). iOS/Safari:
   Share → “Add to Home Screen”.
-- Updates: bump `version.js`; the installed app updates itself on reopening.
+- Updates: bump `version.js`; when the app checks and finds the new version, a
+  gold dot appears next to the version. Tap it, then confirm to update and
+  reload. Fully closing and reopening the app also triggers a check.
 - If you change files locally and don't see the changes, bump the version or
   clear the site data.
 

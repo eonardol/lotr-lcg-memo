@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "./Icon";
+import { UpdateVersionButton } from "./UpdateVersionButton";
 import { languageNames, nextLanguage, translate } from "@/lib/i18n";
 import type { Rotation } from "@/lib/types";
 
@@ -46,7 +47,7 @@ export const TopBar = ({
         </span>
         <span className="brand-text">
           <span className="brand-title">{t("ui.appTitle")}</span>
-          <span className="brand-version">{version ? `v${version}` : ""}</span>
+          <UpdateVersionButton lang={lang} version={version} />
         </span>
       </span>
 
