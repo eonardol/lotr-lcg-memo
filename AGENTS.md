@@ -18,7 +18,7 @@ a public API you cannot change at will.
              //   bookmark: { container, step } | null,
              //   quest: { willpower, threat, applied } }
     history, // [{ state, label }] undo snapshots (max HISTORY_LIMIT)
-    notes,   // { "container::anchor": [{ id, text }, ...] }
+    notes,   // { "container::anchor": [{ id, text, hidden? }, ...] }
     wake,    // boolean
     rotation,// 0 | 90
     lang     // "it" | "en"

@@ -2,6 +2,8 @@ import bookmark from "@/assets/bookmark.svg";
 import bookmarkFilled from "@/assets/bookmark-filled.svg";
 import pencil from "@/assets/pencil-1.svg";
 import trash from "@/assets/trash.svg";
+import eyeOpen from "@/assets/eye-open.svg";
+import eyeClosed from "@/assets/eye-closed.svg";
 import screenPortrait from "@/assets/screen-portrait.svg";
 import screenLandscape from "@/assets/screen-landscape.svg";
 import reset from "@/assets/reset.svg";
@@ -14,6 +16,8 @@ export const iconMask = {
   bookmarkFilled: `url("${bookmarkFilled}")`,
   pencil: `url("${pencil}")`,
   trash: `url("${trash}")`,
+  eyeOpen: `url("${eyeOpen}")`,
+  eyeClosed: `url("${eyeClosed}")`,
   screenPortrait: `url("${screenPortrait}")`,
   screenLandscape: `url("${screenLandscape}")`,
   undo: `url("${reset}")`,
