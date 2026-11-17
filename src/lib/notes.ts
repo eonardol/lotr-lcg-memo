@@ -33,7 +33,11 @@ export const gapLabel = (lang: string, container: string, anchor: string): strin
 export const phaseHasNotes = (notes: NotesMap, index: number): boolean => {
   const prefixes = [`${index}::`];
   (PROCESSI_FASE[index] || []).forEach((kind) => prefixes.push(`proc:${kind}::`));
-  return Object.keys(notes).some((key) => prefixes.some((prefix) => key.startsWith(prefix)));
+  return Object.keys(notes).some(
+    (key) =>
+      prefixes.some((prefix) => key.startsWith(prefix)) &&
+      notes[key].some((note) => !note.hidden)
+  );
 };
 
 export const phaseOfContainer = (container: string | undefined): number => {
